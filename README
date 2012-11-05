@@ -1,0 +1,12 @@
+RUtils plugin
+=============
+
+This plugin offers some general purpose routines on string conversions, parsings, encodings and others.
+Most of them are writen in low level programming which assures high performance and responsiveness.
+
+Installation
+============
+
+1. Open the package "rutilspkg.lpk", in the dialog that opens, click in "Use >>" and "Add to Project";
+
+Enjoy!
