@@ -16,7 +16,7 @@ uses
   MacUUID,
 {$ENDIF}
   Classes, SysUtils, StrUtils, Base64, BlowFish, MD5, SHA1, RegExpr, FPJSON,
-  HTTPDefs, ZStream;
+  HTTPDefs, ZStream, JSONParser;
 
 const
   BR = '<br />';
@@ -175,6 +175,10 @@ function Iif(const ACondition: Boolean;
   const ATruePart, AFalsePart: Int64): Int64; overload;
 function Iif(const ACondition: Boolean;
   const ATruePart, AFalsePart: Variant): Variant; overload;
+procedure GetJSONArray(AStream: TStream; out AJSON: TJSONArray);
+procedure GetJSONArray(const S: TJSONStringType; out AJSON: TJSONArray);
+procedure GetJSONObject(AStream: TStream; out AJSON: TJSONObject);
+procedure GetJSONObject(const S: TJSONStringType; out AJSON: TJSONObject);
 
 implementation
 
@@ -1464,6 +1468,54 @@ begin
     Result := ATruePart
   else
     Result := AFalsePart;
+end;
+
+procedure GetJSONArray(AStream: TStream; out AJSON: TJSONArray);
+var
+  VParser: TJSONParser;
+begin
+  VParser := TJSONParser.Create(AStream);
+  try
+    AJSON := VParser.Parse as TJSONArray;
+  finally
+    VParser.Free;
+  end;
+end;
+
+procedure GetJSONArray(const S: TJSONStringType; out AJSON: TJSONArray);
+var
+  VParser: TJSONParser;
+begin
+  VParser := TJSONParser.Create(S);
+  try
+    AJSON := VParser.Parse as TJSONArray;
+  finally
+    VParser.Free;
+  end;
+end;
+
+procedure GetJSONObject(AStream: TStream; out AJSON: TJSONObject);
+var
+  VParser: TJSONParser;
+begin
+  VParser := TJSONParser.Create(AStream);
+  try
+    AJSON := VParser.Parse as TJSONObject;
+  finally
+    VParser.Free;
+  end;
+end;
+
+procedure GetJSONObject(const S: TJSONStringType; out AJSON: TJSONObject);
+var
+  VParser: TJSONParser;
+begin
+  VParser := TJSONParser.Create(S);
+  try
+    AJSON := VParser.Parse as TJSONObject;
+  finally
+    VParser.Free;
+  end;
 end;
 
 end.
