@@ -152,6 +152,9 @@ function Occurs(const S: string; const AParts: array of string): SizeInt;
   For example: MatchStrings('Free Pascal','*Pa*') would return True.
   Other example: MatchStrings('Free Pascal','Free?Pascal') would return True }
 function MatchStrings(ASource, APattern: string): Boolean;
+function SeparateRight(const S, ADelimiter: string): string; overload;
+function SeparateRight(const S, ADelimiter: string;
+  const AIgnoreCase: Boolean): string; overload;
 function Between(const AStart, AEnd: string; const S: string): string; overload;
 function Between(const AStart, AEnd: string; const S: string;
   const AIgnoreCase: Boolean): string; overload;
@@ -1347,37 +1350,134 @@ begin
   Result := MatchPattern(PSrc, PPatt);
 end;
 
+function SeparateRight(const S, ADelimiter: string): string;
+var
+  P: Integer;
+begin
+  P := Pos(ADelimiter, S);
+  if P > 0 then
+    P := P + Length(ADelimiter) - 1;
+  Result := Copy(S, P + 1, Length(S) - P);
+end;
+
+function SeparateRight(const S, ADelimiter: string;
+  const AIgnoreCase: Boolean): string;
+var
+  P: Integer;
+begin
+  if AIgnoreCase then
+  begin
+    P := Pos(LowerCase(ADelimiter), LowerCase(S));
+    if P > 0 then
+      P := P + Length(ADelimiter) - 1;
+    Result := Copy(S, P + 1, Length(S) - P);
+  end
+  else
+    Result := SeparateRight(S, ADelimiter);
+end;
+
 function Between(const AStart, AEnd: string; const S: string): string;
 var
-  P1, P2: SizeInt;
+  I, C, L1, L2, L3: Integer;
+  S1, S2: string;
 begin
- P1 := Pos(AStart, S);
- P2 := Pos(AEnd, S);
- if (P1 > 0) and (P2 > P1) then
-   Result := Copy(S, P1 + Length(AStart), P2 - P1 - Length(AEnd) + 1);
+  L1 := Length(S);
+  L2 := Length(AStart);
+  L3 := Length(AEnd);
+  if (S = AStart + AEnd) then
+  begin
+    Result := ES;
+    Exit;
+  end;
+  if (L1 < L2 + L3) then
+  begin
+    Result := ES;
+    Exit;
+  end;
+  S1 := SeparateRight(S, AStart);
+  if (S1 = S) then
+  begin
+    Result := ES;
+    Exit;
+  end;
+  L1 := Pos(AEnd, S1);
+  if (L1 = 0) then
+  begin
+    Result := ES;
+    Exit;
+  end;
+  Result := ES;
+  I := 1;
+  C := Length(S1) - L3 + 1;
+  for L1 := 1 to C do
+  begin
+    S2 := Copy(S1, L1, L3);
+    if (S2 = AEnd) then
+    begin
+      Dec(I);
+      if (I <= 0) then
+        Break;
+    end;
+    S2 := Copy(S1, L1, L2);
+    if (S2 = AStart) then
+      Inc(I);
+    Result := Result + S1[L1];
+  end;
 end;
 
 function Between(const AStart, AEnd: string; const S: string;
   const AIgnoreCase: Boolean): string;
 var
-  VSrc: string;
-  P1, P2: SizeInt;
+  I, C, L1, L2, L3: Integer;
+  S1, S2: string;
 begin
- if AIgnoreCase then
- begin
-   VSrc := LowerCase(S);
-   P1 := Pos(LowerCase(AStart), VSrc);
-   P2 := Pos(LowerCase(AEnd), VSrc);
-   if (P1 > 0) and (P2 > P1) then
-     Result := Copy(S, P1 + Length(AStart), P2 - P1 - Length(AEnd) + 1);
- end
- else
- begin
-   P1 := Pos(AStart, S);
-   P2 := Pos(AEnd, S);
-   if (P1 > 0) and (P2 > P1) then
-     Result := Copy(S, P1 + Length(AStart), P2 - P1 - Length(AEnd) + 1);
- end;
+  if AIgnoreCase then
+  begin
+    L1 := Length(S);
+    L2 := Length(AStart);
+    L3 := Length(AEnd);
+    if (S = AStart + AEnd) then
+    begin
+      Result := ES;
+      Exit;
+    end;
+    if (L1 < L2 + L3) then
+    begin
+      Result := ES;
+      Exit;
+    end;
+    S1 := SeparateRight(S, AStart, True);
+    if (S1 = S) then
+    begin
+      Result := ES;
+      Exit;
+    end;
+    L1 := Pos(LowerCase(AEnd), LowerCase(S1));
+    if (L1 = 0) then
+    begin
+      Result := ES;
+      Exit;
+    end;
+    Result := ES;
+    I := 1;
+    C := Length(S1) - L3 + 1;
+    for L1 := 1 to C do
+    begin
+      S2 := Copy(S1, L1, L3);
+      if (S2 = AEnd) then
+      begin
+        Dec(I);
+        if (I <= 0) then
+          Break;
+      end;
+      S2 := Copy(S1, L1, L2);
+      if (S2 = AStart) then
+        Inc(I);
+      Result := Result + S1[L1];
+    end;
+  end
+  else
+    Result := Between(AStart, AEnd, S);
 end;
 
 function Iif(const ACondition: Boolean;
