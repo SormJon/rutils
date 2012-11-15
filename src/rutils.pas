@@ -1115,7 +1115,7 @@ begin
   I := 0;
   while PSrc^ <> NU do
   begin
-    if PSrc^ in ['0'..'9'] then
+    if PSrc^ in ['a'..'z', 'A'..'Z'] then
     begin
       PDest^ := PSrc^;
       Inc(PDest);
@@ -1137,7 +1137,7 @@ begin
   I := 0;
   while PSrc^ <> NU do
   begin
-    if PSrc^ in ['a'..'z', 'A'..'Z'] then
+    if PSrc^ in ['0'..'9'] then
     begin
       PDest^ := PSrc^;
       Inc(PDest);
