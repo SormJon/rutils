@@ -34,7 +34,7 @@ const
   EQ = #61; // =
   GT = #62; // >
   QU = #63; // ?
-  UUID_MASK = '%.8x%.4x%.4x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x';
+  UUID_MASK = '%.8x-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x';
   NUMBERS = '0123456789';
   az_ = 'abcdefghijklmnopqrstuvwxyz';
   AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
