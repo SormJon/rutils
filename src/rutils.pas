@@ -27,8 +27,10 @@ const
   CRLF = CR + LF;
   SP = #32; //
   DQ = #34; // "
+  AM = #38; // &
   AK = #42; // *
   CS = #44; // ,
+  US = #47; // /
   CO = #58; // :
   LT = #60; // <
   EQ = #61; // =
@@ -80,7 +82,9 @@ procedure ZCompressFile(const AIn, AOut: TFileName;
 procedure ZDecompressFile(const AIn, AOut: TFileName);
 function ParamsToJSON(const AParam: string;
   const ASeparator, ADelimiter: Char): TJSONStringType;
+function JSONToParams(AJSON: TJSONObject): string;
 function PathToJSON(const APath: string; const ADelimiter: Char): TJSONStringType;
+function JSONToPath(AJSON: TJSONArray): string;
 function Extract(const S, AExpression: string; const AMatch: Integer = 0;
   const AModifiers: TRegExModifiers = [rmModifierI]): string;
 procedure Extract(AStrs: TStrings; const S, AExpression: string;
@@ -355,6 +359,16 @@ begin
   Result := '{ ' + VResult + ' }';
 end;
 
+function JSONToParams(AJSON: TJSONObject): string;
+var
+  I: Integer;
+begin
+  Result := ES;
+  for I := 0 to Pred(AJSON.Count) do
+    Result += AJSON.Names[I] + EQ + AJSON.Items[I].AsString + AM;
+  SetLength(Result, Length(Result) - Length(AM));
+end;
+
 function PathToJSON(const APath: string; const ADelimiter: Char): TJSONStringType;
 var
   S: string;
@@ -384,6 +398,16 @@ begin
   if S[L] <> DQ then
     Insert(DQ, S, L + 1);
   Result := '[ ' + HTTPDecode(S) + ' ]'
+end;
+
+function JSONToPath(AJSON: TJSONArray): string;
+var
+  I: Integer;
+begin
+  Result := ES;
+  for I := 0 to Pred(AJSON.Count) do
+    Result += AJSON[I].AsString;
+  SetLength(Result, Length(Result) - Length(US));
 end;
 
 function Extract(const S, AExpression: string; const AMatch: Integer;
