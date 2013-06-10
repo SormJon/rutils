@@ -148,6 +148,8 @@ function Explode(const S: string; const ADelimiter: string = SP;
   const ALimit: Integer = 0): TArrayOfString;
 function Implode(const AArray: TArrayOfString;
   const ADelimiter: string = SP): string;
+function Implode(const AArray: array of string;
+  const ADelimiter: string = SP): string;
 function Occurs(const S, APart: string): SizeInt;
 function Occurs(const S: string; const AParts: array of string): SizeInt;
 { This function takes two strings and compares them. The first string can be
@@ -1287,6 +1289,19 @@ begin
 end;
 
 function Implode(const AArray: TArrayOfString; const ADelimiter: string): string;
+var
+  S: string;
+  L: SizeInt;
+begin
+  Result := ES;
+  for S in AArray do
+    Result += S + ADelimiter;
+  L := Length(Result);
+  if L > 0 then
+    SetLength(Result, L - Length(ADelimiter));
+end;
+
+function Implode(const AArray: array of string; const ADelimiter: string): string;
 var
   S: string;
   L: SizeInt;
