@@ -164,6 +164,7 @@ function SeparateRight(const S, ADelimiter: string;
 function Between(const AStart, AEnd: string; const S: string): string; overload;
 function Between(const AStart, AEnd: string; const S: string;
   const AIgnoreCase: Boolean): string; overload;
+function RemoveDiacritics(const S: string): string;
 function Iif(const ACondition: Boolean;
   const ATruePart, AFalsePart: string): string; overload;
 function Iif(const ACondition: Boolean;
@@ -1517,6 +1518,51 @@ begin
   end
   else
     Result := Between(AStart, AEnd, S);
+end;
+
+function RemoveDiacritics(const S: string): string;
+var
+  F: Boolean;
+  I: SizeInt;
+  PS, PD: PChar;
+begin
+  SetLength(Result, Length(S));
+  PS := PChar(S);
+  PD := PChar(Result);
+  I := 0;
+  while PS^ <> #0 do
+  begin
+    F := PS^ = #195;
+    if F then
+      case PS[1] of
+        #128..#134: PD^ := 'A';
+        #135: PD^ := 'C';
+        #136..#139: PD^ := 'E';
+        #140..#143: PD^ := 'I';
+        #145: PD^ := 'N';
+        #146..#150: PD^ := 'O';
+        #153..#156: PD^ := 'U';
+        #157: PD^ := 'Y';
+        #160..#166: PD^ := 'a';
+        #167: PD^ := 'c';
+        #168..#171: PD^ := 'e';
+        #172..#175: PD^ := 'i';
+        #177: PD^ := 'n';
+        #178..#182: PD^ := 'o';
+        #185..#188: PD^ := 'u';
+        #189..#191: PD^ := 'y';
+      else
+        F := False;
+      end;
+    if F then
+      Inc(PS)
+    else
+      PD^ := PS^;
+    Inc(I);
+    Inc(PD);
+    Inc(PS);
+  end;
+  SetLength(Result, I);
 end;
 
 function Iif(const ACondition: Boolean;
