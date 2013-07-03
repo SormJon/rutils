@@ -165,6 +165,7 @@ function Between(const AStart, AEnd: string; const S: string): string; overload;
 function Between(const AStart, AEnd: string; const S: string;
   const AIgnoreCase: Boolean): string; overload;
 function RemoveDiacritics(const S: string): string;
+function RemoveSpecialChars(const S: string): string;
 function Iif(const ACondition: Boolean;
   const ATruePart, AFalsePart: string): string; overload;
 function Iif(const ACondition: Boolean;
@@ -1558,6 +1559,57 @@ begin
         #185..#188: PD^ := 'u';
         #190: PD^ := 'p';
         #189, #191: PD^ := 'y';
+      else
+        F := False;
+      end;
+    if F then
+      Inc(PS)
+    else
+      PD^ := PS^;
+    Inc(I);
+    Inc(PD);
+    Inc(PS);
+  end;
+  SetLength(Result, I);
+end;
+
+function RemoveSpecialChars(const S: string): string;
+var
+  F: Boolean;
+  I: SizeInt;
+  PS, PD: PChar;
+begin
+  SetLength(Result, Length(S));
+  PS := PChar(S);
+  PD := PChar(Result);
+  I := 0;
+  while PS^ <> #0 do
+  begin
+    F := PS^ = #194;
+    if F then
+      case PS[1] of
+        #161: PD^ := '!';
+        #162, #169: PD^ := 'c';
+        #163: PD^ := 'l';
+        #164: PD^ := 'o';
+        #165: PD^ := 'y';
+        #166: PD^ := '|';
+        #167: PD^ := 's';
+        #168: PD^ := '"';
+        #170, #172, #173: PD^ := '-';
+        #171: PD^ := '<';
+        #174: PD^ := 'r';
+        #175, #176, #178, #179, #183, #185: PD^ := '^';
+        #177: PD^ := '+';
+        #180: PD^ := '\';
+        #181: PD^ := '/';
+        #182: PD^ := 'P';
+        #184: PD^ := ',';
+        #186: PD^ := '_';
+        #187: PD^ := '>';
+        #188, #189: PD^ := '1';
+        #190: PD^ := '3';
+        #191: PD^ := '?';
       else
         F := False;
       end;
