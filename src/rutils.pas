@@ -223,13 +223,20 @@ procedure GetJSONObject(const S: TJSONStringType; out AJSON: TJSONObject);
 function ReadString(AStream: TStream; const ALength: Int64): string;
 function GraphicTypeToString(const AGraphicType: TGraphicType): string;
 function StringToGraphicType(const S: string): TGraphicType;
-function TestStreamIsBMP(const AStream: TStream): Boolean;
-function TestStreamIsIcon(const AStream: TStream): Boolean;
-function TestStreamIsJPEG(AStream: TStream): Boolean;
-function TestStreamIsGIF(AStream: TStream): Boolean;
-function TestStreamIsXPM(const AStream: TStream): Boolean;
-function TestStreamIsPNG(AStream: TStream): Boolean;
-function TestStreamIsPNM(AStream: TStream): Boolean;
+function TestIsBMP(AStream: TStream): Boolean; overload;
+function TestIsBMP(const AFileName: TFileName): Boolean; overload;
+function TestIsIcon(AStream: TStream): Boolean; overload;
+function TestIsIcon(const AFileName: TFileName): Boolean; overload;
+function TestIsJPEG(AStream: TStream): Boolean; overload;
+function TestIsJPEG(const AFileName: TFileName): Boolean; overload;
+function TestIsGIF(AStream: TStream): Boolean; overload;
+function TestIsGIF(const AFileName: TFileName): Boolean; overload;
+function TestIsXPM(AStream: TStream): Boolean; overload;
+function TestIsXPM(const AFileName: TFileName): Boolean; overload;
+function TestIsPNG(AStream: TStream): Boolean; overload;
+function TestIsPNG(const AFileName: TFileName): Boolean; overload;
+function TestIsPNM(AStream: TStream): Boolean; overload;
+function TestIsPNM(const AFileName: TFileName): Boolean; overload;
 function GetGraphicType(AStream: TStream): TGraphicType;
 function GetGraphicTypeString(AStream: TStream): string;
 function IsStreamGraphicSupported(AStream: TStream): Boolean;
@@ -1856,7 +1863,7 @@ begin
 end;
 
 {$HINTS OFF}
-function TestStreamIsBMP(const AStream: TStream): Boolean;
+function TestIsBMP(AStream: TStream): Boolean;
 var
   VSignature: array[0..1] of Char;
   VReadSize: Integer;
@@ -1872,8 +1879,20 @@ begin
 end;
 {$HINTS ON}
 
+function TestIsBMP(const AFileName: TFileName): Boolean;
+var
+  VFile: TFileStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  try
+    Result := TestIsBMP(VFile);
+  finally
+    VFile.Free;
+  end;
+end;
+
 {$HINTS OFF}
-function TestStreamIsIcon(const AStream: TStream): Boolean;
+function TestIsIcon(AStream: TStream): Boolean;
 const
   CIconSignature: array [0..3] of Char = #0#0#1#0;
 var
@@ -1892,7 +1911,19 @@ begin
 end;
 {$HINTS ON}
 
-function TestStreamIsJPEG(AStream: TStream): Boolean;
+function TestIsIcon(const AFileName: TFileName): Boolean;
+var
+  VFile: TFileStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  try
+    Result := TestIsIcon(VFile);
+  finally
+    VFile.Free;
+  end;
+end;
+
+function TestIsJPEG(AStream: TStream): Boolean;
 var
   VSOI: Word;
   VOldPosition: Int64;
@@ -1907,8 +1938,20 @@ begin
   end;
 end;
 
+function TestIsJPEG(const AFileName: TFileName): Boolean;
+var
+  VFile: TFileStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  try
+    Result := TestIsJPEG(VFile);
+  finally
+    VFile.Free;
+  end;
+end;
+
 {$HINTS OFF}
-function TestStreamIsGIF(AStream: TStream): Boolean;
+function TestIsGIF(AStream: TStream): Boolean;
 var
   VOldPosition: Int64;
   VSignature: array [0..5] of Char;
@@ -1923,7 +1966,19 @@ begin
 end;
 {$HINTS ON}
 
-function TestStreamIsXPM(const AStream: TStream): Boolean;
+function TestIsGIF(const AFileName: TFileName): Boolean;
+var
+  VFile: TFileStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  try
+    Result := TestIsGIF(VFile);
+  finally
+    VFile.Free;
+  end;
+end;
+
+function TestIsXPM(AStream: TStream): Boolean;
 type
   TXPMRange = (xrCode, xrStaticKeyWord, xrCharKeyWord);
 
@@ -2023,8 +2078,20 @@ begin
   end;
 end;
 
+function TestIsXPM(const AFileName: TFileName): Boolean;
+var
+  VFile: TFileStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  try
+    Result := TestIsXPM(VFile);
+  finally
+    VFile.Free;
+  end;
+end;
+
 {$HINTS OFF}
-function TestStreamIsPNG(AStream: TStream): Boolean;
+function TestIsPNG(AStream: TStream): Boolean;
 const
   CSignature: array[0..7] of Byte = ($89, $50, $4E, $47, $0D, $0A, $1A, $0A);
 var
@@ -2046,7 +2113,19 @@ begin
 end;
 {$HINTS ON}
 
-function TestStreamIsPNM(AStream: TStream): Boolean;
+function TestIsPNG(const AFileName: TFileName): Boolean;
+var
+  VFile: TFileStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  try
+    Result := TestIsPNG(VFile);
+  finally
+    VFile.Free;
+  end;
+end;
+
+function TestIsPNM(AStream: TStream): Boolean;
 var
   C: Char;
   VOldPosition: Int64;
@@ -2065,30 +2144,42 @@ begin
   end;
 end;
 
+function TestIsPNM(const AFileName: TFileName): Boolean;
+var
+  VFile: TFileStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  try
+    Result := TestIsPNM(VFile);
+  finally
+    VFile.Free;
+  end;
+end;
+
 function GetGraphicType(AStream: TStream): TGraphicType;
 begin
   Result := gtUnknown;
   if not Assigned(AStream) then
     Exit;
-  if TestStreamIsBMP(AStream) then
+  if TestIsBMP(AStream) then
     Result := gtBMP
   else
-  if TestStreamIsIcon(AStream) then
+  if TestIsIcon(AStream) then
     Result := gtIcon
   else
-  if TestStreamIsJPEG(AStream) then
+  if TestIsJPEG(AStream) then
     Result := gtJPEG
   else
-  if TestStreamIsGIF(AStream) then
+  if TestIsGIF(AStream) then
     Result := gtGIF
   else
-  if TestStreamIsXPM(AStream) then
+  if TestIsXPM(AStream) then
     Result := gtXPM
   else
-  if TestStreamIsPNG(AStream) then
+  if TestIsPNG(AStream) then
     Result := gtPNG
   else
-  if TestStreamIsPNM(AStream) then
+  if TestIsPNM(AStream) then
     Result := gtPNM;
 end;
 
