@@ -71,6 +71,10 @@ type
   TRegExModifiers = set of (rmModifierI, rmModifierR, rmModifierS, rmModifierG,
     rmModifierM, rmModifierX);
 
+  TGraphicType = (gtUnknown, gtBMP, gtIcon, gtJPEG, gtGIF, gtXPM, gtPNG, gtPNM);
+
+{ (De)Compress }
+
 procedure ZCompressStream(AIn, AOut: TStream;
   const ALevel: TCompressionLevel = clDefault);
 procedure ZDecompressStream(AIn, AOut: TStream);
@@ -80,17 +84,18 @@ function ZDecompressStr(const S: string): string;
 procedure ZCompressFile(const AIn, AOut: TFileName;
   const ALevel: TCompressionLevel = clDefault);
 procedure ZDecompressFile(const AIn, AOut: TFileName);
-function ParamsToJSON(const AParam: string;
-  const ASeparator, ADelimiter: Char): TJSONStringType;
-function JSONToParams(AJSON: TJSONObject): string;
-function PathToJSON(const APath: string; const ADelimiter: Char): TJSONStringType;
-function JSONToPath(AJSON: TJSONArray): string;
+
+{ RegEx }
+
 function Extract(const S, AExpression: string; const AMatch: Integer = 0;
   const AModifiers: TRegExModifiers = [rmModifierI]): string;
 procedure Extract(AStrs: TStrings; const S, AExpression: string;
   const AMatch: Integer = 0; const AModifiers: TRegExModifiers = [rmModifierI]);
 function Replace(const AStrOld, AStrNew, AExpression: string;
   const AModifiers: TRegExModifiers = [rmModifierI]): string;
+
+{ Hash }
+
 function UUID: string;
 function UUID(const AUseSeparators: Boolean): string;
 function MD5FromStr(const S: string): string;
@@ -103,13 +108,6 @@ function SHA1Password(const AUpperCase: Boolean = True): string;
 function Password(const AAmount: TGeneratePasswordAmount = 6;
   const AAZ: Boolean = True; const A_az: Boolean = False;
   const ASymbols: Boolean = False; const ANumbers: Boolean = True): string;
-function StripHTMLMarkup(const S: string): string;
-function EOLToBR(const S: string): string;
-procedure EOLToBREx(var S: string);
-function StrToHtml(const S: string): string;
-function HtmlToStr(const S: string): string;
-function EncryptStr(const S, AKey: string): string;
-function DecryptStr(const S, AKey: string): string;
 function StrToBase64(S: string): string;
 function Base64ToStr(const S: string;
   const AMode: TBase64DecodingMode = bdmMIME): string;
@@ -119,16 +117,34 @@ procedure Base64ToFile(const S: string; const AFileName: TFileName;
 function StreamToBase64(AStream: TStream): string;
 procedure Base64ToStream(const S: string; AStream: TStream;
   const AMode: TBase64DecodingMode = bdmMIME);
-function NameOf(const S: string): string;
-function ValueOf(const S: string): string;
-procedure NameValueOf(const S: string; out AName, AValue: string);
-function FileNameOf(const S: string): string;
-function FileDateTime(const AFileName: TFileName): TDateTime;
-function GetTickCount: DWord;
+
+{ HTML }
+
+function StripHTMLMarkup(const S: string): string;
+function EOLToBR(const S: string): string;
+procedure EOLToBREx(var S: string);
+function StrToHtml(const S: string): string;
+function HtmlToStr(const S: string): string;
+
+{ (De)Crypt }
+
+function EncryptStr(const S, AKey: string): string;
+function DecryptStr(const S, AKey: string): string;
+
+{ Date/Time }
+
 function MSecToDateTime(const AMSec: Double): TDateTime;
 function MilliSecondToDateTime(const AMSec: Double): TDateTime;
 function DTToMS(const ADateTime: TDateTime): Double;
 function DateTimeToMilliSecond(const ADateTime: TDateTime): Double;
+function FileDateTime(const AFileName: TFileName): TDateTime;
+
+{ String }
+
+function NameOf(const S: string): string;
+function ValueOf(const S: string): string;
+procedure NameValueOf(const S: string; out AName, AValue: string);
+function FileNameOf(const S: string): string;
 procedure StrToFile(const S: string; const AFileName: TFileName);
 function FileToStr(const AFileName: TFileName): string;
 function HiddenPassword(const APass: string; const AChar: Char = AK): string;
@@ -166,6 +182,9 @@ function Between(const AStart, AEnd: string; const S: string;
   const AIgnoreCase: Boolean): string; overload;
 function RemoveDiacritics(const S: string): string;
 function RemoveSpecialChars(const S: string): string;
+
+{ Conditional }
+
 function Iif(const ACondition: Boolean;
   const ATruePart, AFalsePart: string): string; overload;
 function Iif(const ACondition: Boolean;
@@ -186,12 +205,37 @@ function Iif(const ACondition: Boolean;
   const ATruePart, AFalsePart: Int64): Int64; overload;
 function Iif(const ACondition: Boolean;
   const ATruePart, AFalsePart: Variant): Variant; overload;
+
+{ JSON }
+
+function ParamsToJSON(const AParam: string;
+  const ASeparator, ADelimiter: Char): TJSONStringType;
+function JSONToParams(AJSON: TJSONObject): string;
+function PathToJSON(const APath: string; const ADelimiter: Char): TJSONStringType;
+function JSONToPath(AJSON: TJSONArray): string;
 procedure GetJSONArray(AStream: TStream; out AJSON: TJSONArray);
 procedure GetJSONArray(const S: TJSONStringType; out AJSON: TJSONArray);
 procedure GetJSONObject(AStream: TStream; out AJSON: TJSONObject);
 procedure GetJSONObject(const S: TJSONStringType; out AJSON: TJSONObject);
 
+{ Graphic }
+
+function ReadString(AStream: TStream; const ALength: Int64): string;
+function GraphicTypeToString(const AGraphicType: TGraphicType): string;
+function StringToGraphicType(const S: string): TGraphicType;
+function TestStreamIsJPEG(AStream: TStream): Boolean;
+function TestStreamIsPNG(AStream: TStream): Boolean;
+function GetGraphicType(AStream: TStream): TGraphicType;
+function GetGraphicTypeString(AStream: TStream): string;
+function IsStreamGraphicSupported(AStream: TStream): Boolean;
+
+{ Util }
+
+function GetTickCount: DWord;
+
 implementation
+
+{ (De)Compress }
 
 procedure ZCompressStream(AIn, AOut: TStream; const ALevel: TCompressionLevel);
 begin
@@ -302,117 +346,7 @@ begin
   end;
 end;
 
-function ParamsToJSON(const AParam: string; const ASeparator,
-  ADelimiter: Char): TJSONStringType;
-var
-  VChar: Char;
-  I, J, VPos: Integer;
-  S, VName, VValue, VResult: string;
-begin
-  Result := AParam;
-  if Length(Result) = 0 then
-  begin
-    Result := '{}';
-    Exit;
-  end;
-  VResult := ES;
-  I := 1;
-  J := 1;
-  while I <= Length(Result) do
-  begin
-    VChar := Result[I];
-    if VChar = ASeparator then
-      Result[I] := CO;
-    if VChar = ADelimiter then
-      Result[I] := CS;
-    if VChar = ADelimiter then
-    begin
-      S := Copy(Result, J, I - J);
-      VPos := Pos(CO, S);
-      VName := Copy(S, 1, Pred(VPos));
-      VValue := ES;
-      if VName <> ES then
-        VValue := Copy(S, Succ(VPos), MaxInt);
-      VResult += DQ + VName + '": "' +
-        StringToJSONString(HTTPDecode(VValue)) + '", ';
-      J := I + 1;
-    end;
-    Inc(I);
-  end;
-  if Length(VResult) > 0 then
-  begin
-    S := Copy(Result, J, I - J);
-    VPos := Pos(CO, S);
-    VName := Copy(S, 1, Pred(VPos));
-    VValue := ES;
-    if VName <> ES then
-      VValue := Copy(S, Succ(VPos), MaxInt);
-    VResult += DQ + VName + '": "' +
-      StringToJSONString(HTTPDecode(VValue)) + DQ;
-  end
-  else
-  begin
-    VPos := Pos(CO, Result);
-    VName := Copy(Result, 1, Pred(VPos));
-    VValue := ES;
-    if VName <> ES then
-      VValue := Copy(Result, Succ(VPos), MaxInt);
-    VResult := DQ + VName + '": "' +
-      StringToJSONString(HTTPDecode(VValue)) + DQ;
-  end;
-  Result := '{ ' + VResult + ' }';
-end;
-
-function JSONToParams(AJSON: TJSONObject): string;
-var
-  I: Integer;
-begin
-  Result := ES;
-  for I := 0 to Pred(AJSON.Count) do
-    Result += AJSON.Names[I] + EQ + AJSON.Items[I].AsString + AM;
-  SetLength(Result, Length(Result) - Length(AM));
-end;
-
-function PathToJSON(const APath: string; const ADelimiter: Char): TJSONStringType;
-var
-  S: string;
-  I, L: LongInt;
-begin
-  Result := APath;
-  L := Length(Result);
-  if L < 2 then
-  begin
-    Result := '[]';
-    Exit;
-  end;
-  S := ES;
-  for I := 1 to L do
-    if Result[I] = ADelimiter then
-    begin
-      if (I = 1) or (I = L) then
-        S += DQ
-      else
-        S += '", "';
-    end
-    else
-      S += Result[I];
-  if S[1] <> DQ then
-    Insert(DQ, S, 1);
-  L := Length(S);
-  if S[L] <> DQ then
-    Insert(DQ, S, L + 1);
-  Result := '[ ' + HTTPDecode(S) + ' ]'
-end;
-
-function JSONToPath(AJSON: TJSONArray): string;
-var
-  I: Integer;
-begin
-  Result := ES;
-  for I := 0 to Pred(AJSON.Count) do
-    Result += AJSON[I].AsString;
-  SetLength(Result, Length(Result) - Length(US));
-end;
+{ RegEx }
 
 function Extract(const S, AExpression: string; const AMatch: Integer;
   const AModifiers: TRegExModifiers): string;
@@ -478,6 +412,8 @@ begin
     VRegEx.Free;
   end;
 end;
+
+{ Hash }
 
 function UUID: string;
 var
@@ -565,6 +501,130 @@ begin
     Inc(P);
   end;
 end;
+
+function StrToBase64(S: string): string;
+var
+  VSrcStream, VDestStream: TStringStream;
+begin
+  VSrcStream := TStringStream.Create(S);
+  try
+    VDestStream := TStringStream.Create('');
+    try
+      with TBase64EncodingStream.Create(VDestStream) do
+        try
+          CopyFrom(VSrcStream, VSrcStream.Size);
+        finally
+          Free;
+        end;
+      Result := VDestStream.DataString;
+    finally
+      VDestStream.Free;
+    end;
+  finally
+    VSrcStream.Free;
+  end;
+end;
+
+function Base64ToStr(const S: string; const AMode: TBase64DecodingMode): string;
+var
+  VDecoder: TBase64DecodingStream;
+  VSrcStream, VDestStream: TStringStream;
+begin
+  VSrcStream := TStringStream.Create(S);
+  VDestStream := TStringStream.Create('');
+  try
+    VDecoder := TBase64DecodingStream.Create(VSrcStream, AMode);
+    try
+      VDestStream.CopyFrom(VDecoder, VDecoder.Size);
+    finally
+      VDecoder.Free;
+    end;
+    Result := VDestStream.DataString;
+  finally
+    VDestStream.Free;
+    VSrcStream.Free;
+  end;
+end;
+
+function FileToBase64(const AFileName: TFileName): string;
+var
+  VFile: TFileStream;
+  VStream: TStringStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  VStream := TStringStream.Create('');
+  try
+    with TBase64EncodingStream.Create(VStream) do
+      try
+        CopyFrom(VFile, VFile.Size);
+      finally
+        Free;
+      end;
+    Result := VStream.DataString;
+  finally
+    VStream.Free;
+    VFile.free;
+  end;
+end;
+
+procedure Base64ToFile(const S: string; const AFileName: TFileName;
+  const AMode: TBase64DecodingMode);
+var
+  VFile: TFileStream;
+  VStream: TStringStream;
+  VDecoder: TBase64DecodingStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmCreate);
+  VStream := TStringStream.Create(S);
+  VDecoder := TBase64DecodingStream.Create(VStream, AMode);
+  try
+    VStream.Position := 0;
+    VFile.CopyFrom(VDecoder, VDecoder.Size);
+  finally
+    VDecoder.Free;
+    VStream.Free;
+    VFile.Free;
+  end;
+end;
+
+function StreamToBase64(AStream: TStream): string;
+var
+  VDestStream: TStringStream;
+begin
+  VDestStream := TStringStream.Create('');
+  try
+    with TBase64EncodingStream.Create(VDestStream) do
+      try
+        CopyFrom(AStream, AStream.Size);
+      finally
+        Free;
+      end;
+    Result := VDestStream.DataString;
+  finally
+    VDestStream.Free;
+  end;
+end;
+
+procedure Base64ToStream(const S: string; AStream: TStream;
+  const AMode: TBase64DecodingMode);
+var
+  VDecoder: TBase64DecodingStream;
+  VSrcStream: TStringStream;
+begin
+  VSrcStream := TStringStream.Create(S);
+  try
+    VDecoder := TBase64DecodingStream.Create(VSrcStream, AMode);
+    try
+      AStream.CopyFrom(VDecoder, VDecoder.Size);
+    finally
+      VDecoder.Free;
+    end;
+  finally
+    VSrcStream.Free;
+  end;
+end;
+
+{ HTML }
 
 function StripHTMLMarkup(const S: string): string;
 var
@@ -741,6 +801,8 @@ begin
   Result := VResStr;
 end;
 
+{ (De)Crypt }
+
 function EncryptStr(const S, AKey: string): string;
 var
   VInput: TStringStream;
@@ -773,127 +835,36 @@ begin
   end;
 end;
 
-function StrToBase64(S: string): string;
-var
-  VSrcStream, VDestStream: TStringStream;
+{ Date/Time }
+
+function FileDateTime(const AFileName: TFileName): TDateTime;
 begin
-  VSrcStream := TStringStream.Create(S);
-  try
-    VDestStream := TStringStream.Create('');
-    try
-      with TBase64EncodingStream.Create(VDestStream) do
-        try
-          CopyFrom(VSrcStream, VSrcStream.Size);
-        finally
-          Free;
-        end;
-      Result := VDestStream.DataString;
-    finally
-      VDestStream.Free;
-    end;
-  finally
-    VSrcStream.Free;
-  end;
+  if not FileExists(AFileName) then
+    raise Exception.Create('File not found: ' + AFileName);
+  Result := FileDateToDateTime(FileAge(AFileName));
 end;
 
-function Base64ToStr(const S: string; const AMode: TBase64DecodingMode): string;
-var
-  VDecoder: TBase64DecodingStream;
-  VSrcStream, VDestStream: TStringStream;
+function MSecToDateTime(const AMSec: Double): TDateTime;
 begin
-  VSrcStream := TStringStream.Create(S);
-  VDestStream := TStringStream.Create('');
-  try
-    VDecoder := TBase64DecodingStream.Create(VSrcStream, AMode);
-    try
-      VDestStream.CopyFrom(VDecoder, VDecoder.Size);
-    finally
-      VDecoder.Free;
-    end;
-    Result := VDestStream.DataString;
-  finally
-    VDestStream.Free;
-    VSrcStream.Free;
-  end;
+  Result := AMSec / MSecsPerSec / SecsPerDay;
 end;
 
-function FileToBase64(const AFileName: TFileName): string;
-var
-  VFile: TFileStream;
-  VStream: TStringStream;
+function MilliSecondToDateTime(const AMSec: Double): TDateTime;
 begin
-  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
-  VStream := TStringStream.Create('');
-  try
-    with TBase64EncodingStream.Create(VStream) do
-      try
-        CopyFrom(VFile, VFile.Size);
-      finally
-        Free;
-      end;
-    Result := VStream.DataString;
-  finally
-    VStream.Free;
-    VFile.free;
-  end;
+  Result := MSecToDateTime(AMSec);
 end;
 
-procedure Base64ToFile(const S: string; const AFileName: TFileName;
-  const AMode: TBase64DecodingMode);
-var
-  VFile: TFileStream;
-  VStream: TStringStream;
-  VDecoder: TBase64DecodingStream;
+function DTToMS(const ADateTime: TDateTime): Double;
 begin
-  VFile := TFileStream.Create(AFileName, fmCreate);
-  VStream := TStringStream.Create(S);
-  VDecoder := TBase64DecodingStream.Create(VStream, AMode);
-  try
-    VStream.Position := 0;
-    VFile.CopyFrom(VDecoder, VDecoder.Size);
-  finally
-    VDecoder.Free;
-    VStream.Free;
-    VFile.Free;
-  end;
+  Result := ADateTime * HoursPerDay * MinsPerHour * SecsPerMin * MSecsPerSec;
 end;
 
-function StreamToBase64(AStream: TStream): string;
-var
-  VDestStream: TStringStream;
+function DateTimeToMilliSecond(const ADateTime: TDateTime): Double;
 begin
-  VDestStream := TStringStream.Create('');
-  try
-    with TBase64EncodingStream.Create(VDestStream) do
-      try
-        CopyFrom(AStream, AStream.Size);
-      finally
-        Free;
-      end;
-    Result := VDestStream.DataString;
-  finally
-    VDestStream.Free;
-  end;
+  Result := DTToMS(ADateTime);
 end;
 
-procedure Base64ToStream(const S: string; AStream: TStream;
-  const AMode: TBase64DecodingMode);
-var
-  VDecoder: TBase64DecodingStream;
-  VSrcStream: TStringStream;
-begin
-  VSrcStream := TStringStream.Create(S);
-  try
-    VDecoder := TBase64DecodingStream.Create(VSrcStream, AMode);
-    try
-      AStream.CopyFrom(VDecoder, VDecoder.Size);
-    finally
-      VDecoder.Free;
-    end;
-  finally
-    VSrcStream.Free;
-  end;
-end;
+{ String }
 
 function NameOf(const S: string): string;
 begin
@@ -927,38 +898,6 @@ end;
 function FileNameOf(const S: string): string;
 begin
   Result := Copy(S, Succ(LastDelimiter('\:/', S)), MaxInt);
-end;
-
-function FileDateTime(const AFileName: TFileName): TDateTime;
-begin
-  if not FileExists(AFileName) then
-    raise Exception.Create('File not found: ' + AFileName);
-  Result := FileDateToDateTime(FileAge(AFileName));
-end;
-
-function GetTickCount: DWord;
-begin
-  Result := DWord(Trunc(Now * HoursPerDay * MinsPerHour * SecsPerMin * MSecsPerSec));
-end;
-
-function MSecToDateTime(const AMSec: Double): TDateTime;
-begin
-  Result := AMSec / MSecsPerSec / SecsPerDay;
-end;
-
-function MilliSecondToDateTime(const AMSec: Double): TDateTime;
-begin
-  Result := MSecToDateTime(AMSec);
-end;
-
-function DTToMS(const ADateTime: TDateTime): Double;
-begin
-  Result := ADateTime * HoursPerDay * MinsPerHour * SecsPerMin * MSecsPerSec;
-end;
-
-function DateTimeToMilliSecond(const ADateTime: TDateTime): Double;
-begin
-  Result := DTToMS(ADateTime);
 end;
 
 procedure StrToFile(const S: string; const AFileName: TFileName);
@@ -1624,6 +1563,8 @@ begin
   SetLength(Result, I);
 end;
 
+{ Conditional }
+
 function Iif(const ACondition: Boolean;
   const ATruePart, AFalsePart: string): string;
 begin
@@ -1714,6 +1655,120 @@ begin
     Result := AFalsePart;
 end;
 
+{ JSON }
+
+function ParamsToJSON(const AParam: string; const ASeparator,
+  ADelimiter: Char): TJSONStringType;
+var
+  VChar: Char;
+  I, J, VPos: Integer;
+  S, VName, VValue, VResult: string;
+begin
+  Result := AParam;
+  if Length(Result) = 0 then
+  begin
+    Result := '{}';
+    Exit;
+  end;
+  VResult := ES;
+  I := 1;
+  J := 1;
+  while I <= Length(Result) do
+  begin
+    VChar := Result[I];
+    if VChar = ASeparator then
+      Result[I] := CO;
+    if VChar = ADelimiter then
+      Result[I] := CS;
+    if VChar = ADelimiter then
+    begin
+      S := Copy(Result, J, I - J);
+      VPos := Pos(CO, S);
+      VName := Copy(S, 1, Pred(VPos));
+      VValue := ES;
+      if VName <> ES then
+        VValue := Copy(S, Succ(VPos), MaxInt);
+      VResult += DQ + VName + '": "' +
+        StringToJSONString(HTTPDecode(VValue)) + '", ';
+      J := I + 1;
+    end;
+    Inc(I);
+  end;
+  if Length(VResult) > 0 then
+  begin
+    S := Copy(Result, J, I - J);
+    VPos := Pos(CO, S);
+    VName := Copy(S, 1, Pred(VPos));
+    VValue := ES;
+    if VName <> ES then
+      VValue := Copy(S, Succ(VPos), MaxInt);
+    VResult += DQ + VName + '": "' +
+      StringToJSONString(HTTPDecode(VValue)) + DQ;
+  end
+  else
+  begin
+    VPos := Pos(CO, Result);
+    VName := Copy(Result, 1, Pred(VPos));
+    VValue := ES;
+    if VName <> ES then
+      VValue := Copy(Result, Succ(VPos), MaxInt);
+    VResult := DQ + VName + '": "' +
+      StringToJSONString(HTTPDecode(VValue)) + DQ;
+  end;
+  Result := '{ ' + VResult + ' }';
+end;
+
+function JSONToParams(AJSON: TJSONObject): string;
+var
+  I: Integer;
+begin
+  Result := ES;
+  for I := 0 to Pred(AJSON.Count) do
+    Result += AJSON.Names[I] + EQ + AJSON.Items[I].AsString + AM;
+  SetLength(Result, Length(Result) - Length(AM));
+end;
+
+function PathToJSON(const APath: string; const ADelimiter: Char): TJSONStringType;
+var
+  S: string;
+  I, L: LongInt;
+begin
+  Result := APath;
+  L := Length(Result);
+  if L < 2 then
+  begin
+    Result := '[]';
+    Exit;
+  end;
+  S := ES;
+  for I := 1 to L do
+    if Result[I] = ADelimiter then
+    begin
+      if (I = 1) or (I = L) then
+        S += DQ
+      else
+        S += '", "';
+    end
+    else
+      S += Result[I];
+  if S[1] <> DQ then
+    Insert(DQ, S, 1);
+  L := Length(S);
+  if S[L] <> DQ then
+    Insert(DQ, S, L + 1);
+  Result := '[ ' + HTTPDecode(S) + ' ]'
+end;
+
+function JSONToPath(AJSON: TJSONArray): string;
+var
+  I: Integer;
+begin
+  Result := ES;
+  for I := 0 to Pred(AJSON.Count) do
+    Result += AJSON[I].AsString;
+  SetLength(Result, Length(Result) - Length(US));
+end;
+
 procedure GetJSONArray(AStream: TStream; out AJSON: TJSONArray);
 var
   VParser: TJSONParser;
@@ -1760,6 +1815,293 @@ begin
   finally
     VParser.Free;
   end;
+end;
+
+{ Graphic }
+
+function ReadString(AStream: TStream; const ALength: Int64): string;
+begin
+  SetLength(Result, ALength);
+  AStream.Read(Pointer(Result)^, ALength);
+end;
+
+function GraphicTypeToString(const AGraphicType: TGraphicType): string;
+const
+  CGraphicTypes: array[TGraphicType] of string = ('Unknown', 'BMP', 'Icon',
+    'JPEG', 'GIF', 'XPM', 'PNG', 'PNM');
+begin
+  Result := CGraphicTypes[AGraphicType];
+end;
+
+function StringToGraphicType(const S: string): TGraphicType;
+var
+  VGT: string;
+begin
+  VGT := LowerCase(S);
+  case VGT of
+    'unknown': Result := gtUnknown;
+    'bmp': Result := gtBMP;
+    'ico', 'icon': Result := gtIcon;
+    'jpg', 'jpeg': Result := gtJPEG;
+    'gif': Result := gtGIF;
+    'xpm': Result := gtXPM;
+    'png': Result := gtPNG;
+    'pbm', 'pgm', 'ppm': Result := gtPNM;
+  end;
+end;
+
+{$HINTS OFF}
+function TestStreamIsBMP(const AStream: TStream): Boolean;
+var
+  VSignature: array[0..1] of Char;
+  VReadSize: Integer;
+  VOldPosition: Int64;
+begin
+  VOldPosition := AStream.Position;
+  try
+    VReadSize := AStream.Read(VSignature, SizeOf(VSignature));
+    Result := (VReadSize = 2) and (VSignature[0] = 'B') and (VSignature[1] = 'M');
+  finally
+    AStream.Position := VOldPosition;
+  end;
+end;
+{$HINTS ON}
+
+{$HINTS OFF}
+function TestStreamIsIcon(const AStream: TStream): Boolean;
+const
+  CIconSignature: array [0..3] of Char = #0#0#1#0;
+var
+  VSignature: array[0..3] of Char;
+  VReadSize: Integer;
+  VOldPosition: Int64;
+begin
+  VOldPosition := AStream.Position;
+  try
+    VReadSize := AStream.Read(VSignature, SizeOf(VSignature));
+    Result := (VReadSize = SizeOf(VSignature)) and
+      CompareMem(@VSignature, @CIconSignature, 4);
+  finally
+    AStream.Position := VOldPosition;
+  end;
+end;
+{$HINTS ON}
+
+function TestStreamIsJPEG(AStream: TStream): Boolean;
+var
+  VSOI: Word;
+  VOldPosition: Int64;
+begin
+  VOldPosition := AStream.Position;
+  try
+    VSOI := 0;
+    AStream.Read(VSOI, SizeOf(VSOI));
+    Result := VSOI = NtoLE($D8FF);
+  finally
+    AStream.Position := VOldPosition;
+  end;
+end;
+
+{$HINTS OFF}
+function TestStreamIsGIF(AStream: TStream): Boolean;
+var
+  VOldPosition: Int64;
+  VSignature: array [0..5] of Char;
+begin
+  VOldPosition := AStream.Position;
+  try
+    AStream.Read(VSignature, SizeOf(VSignature));
+    Result := (VSignature = 'GIF89a') or (VSignature = 'GIF87a');
+  finally
+    AStream.Position := VOldPosition;
+  end;
+end;
+{$HINTS ON}
+
+function TestStreamIsXPM(const AStream: TStream): Boolean;
+type
+  TXPMRange = (xrCode, xrStaticKeyWord, xrCharKeyWord);
+
+  function Check(const S: string): Boolean;
+  var
+    VBuf: string;
+  begin
+    Result := False;
+    SetLength(VBuf, Length(S));
+    if AStream.Read(VBuf[1], Length(VBuf)) <> Length(VBuf) then
+      Exit;
+    if VBuf <> S then
+      Exit;
+    Result := True;
+  end;
+
+var
+  C, VLastChar: Char;
+  VRange: TXPMRange;
+  VOldPosition: Int64;
+begin
+  Result := False;
+  VOldPosition := AStream.Position;
+  try
+    C := #0;
+    VRange := xrCode;
+    repeat
+      if AStream.Read(C, 1) <> 1 then
+        Exit;
+      case C of
+        ' ', #9, #10, #13: ;
+        '/':
+        begin
+          if AStream.Read(c, 1) <> 1 then
+            Exit;
+          if C <> '*' then
+            Exit;
+          repeat
+            VLastChar := C;
+            if AStream.Read(C, 1) <> 1 then
+              Exit;
+            if C in [#0..#8, #11, #12, #14..#31] then
+              Exit;
+          until (C = '/') and (VLastChar = '*');
+        end;
+        's':
+        begin
+          if VRange <> xrCode then
+            Exit;
+          if not Check('tatic') then
+            Exit;
+          VRange := xrStaticKeyWord;
+          if (AStream.Read(C, 1) <> 1) or (not (C in [' ', #9, #10, #13])) then
+            Exit;
+        end;
+        'c':
+        begin
+          if VRange <> xrStaticKeyWord then
+            Exit;
+          if (AStream.Read(C, 1) <> 1) then
+            Exit;
+          if C = 'o' then
+          begin
+            if not Check('nst') then
+              Exit;
+          end
+          else
+          if C = 'h' then
+          begin
+            if not Check('ar') then
+              Exit;
+            VRange := xrCharKeyWord;
+          end
+          else
+            Exit;
+        end;
+        'u':
+        begin
+          if VRange <> xrStaticKeyWord then
+            Exit;
+          if not Check('nsigned') then
+            Exit;
+        end;
+        '*':
+        begin
+          if VRange <> xrCharKeyWord then
+            Exit;
+          Result := True;
+          Exit;
+        end;
+        else
+          Exit;
+      end;
+    until False;
+  finally
+    AStream.Position := VOldPosition;
+  end;
+end;
+
+{$HINTS OFF}
+function TestStreamIsPNG(AStream: TStream): Boolean;
+const
+  CSignature: array[0..7] of Byte = ($89, $50, $4E, $47, $0D, $0A, $1A, $0A);
+var
+  VReadSize: Integer;
+  VOldPosition: Int64;
+  VSigCheck: array[0..7] of Byte;
+begin
+  VOldPosition := AStream.Position;
+  try
+    AStream.Read(VSigCheck, SizeOf(VSigCheck));
+    Result := False;
+    for VReadSize := 0 to 7 do
+      if VSigCheck[VReadSize] <> CSignature[VReadSize] then
+        Exit;
+    Result := True;
+  finally
+    AStream.Position := VOldPosition;
+  end;
+end;
+{$HINTS ON}
+
+function TestStreamIsPNM(AStream: TStream): Boolean;
+var
+  C: Char;
+  VOldPosition: Int64;
+begin
+  VOldPosition := AStream.Position;
+  try
+    C := #0;
+    AStream.ReadBuffer(C, 1);
+    Result := C = 'P';
+    if not Result then
+      Exit;
+    AStream.ReadBuffer(C, 1);
+    Result := (Ord(C) - Ord('0')) in [1..6];
+  finally
+    AStream.Position := VOldPosition;
+  end;
+end;
+
+function GetGraphicType(AStream: TStream): TGraphicType;
+begin
+  Result := gtUnknown;
+  if not Assigned(AStream) then
+    Exit;
+  if TestStreamIsBMP(AStream) then
+    Result := gtBMP
+  else
+  if TestStreamIsIcon(AStream) then
+    Result := gtIcon
+  else
+  if TestStreamIsJPEG(AStream) then
+    Result := gtJPEG
+  else
+  if TestStreamIsGIF(AStream) then
+    Result := gtGIF
+  else
+  if TestStreamIsXPM(AStream) then
+    Result := gtXPM
+  else
+  if TestStreamIsPNG(AStream) then
+    Result := gtPNG
+  else
+  if TestStreamIsPNM(AStream) then
+    Result := gtPNM;
+end;
+
+function GetGraphicTypeString(AStream: TStream): string;
+begin
+  Result := GraphicTypeToString(GetGraphicType(AStream));
+end;
+
+function IsStreamGraphicSupported(AStream: TStream): Boolean;
+begin
+  Result := GetGraphicType(AStream) <> gtUnknown;
+end;
+
+{ Util }
+
+function GetTickCount: DWord;
+begin
+  Result := DWord(Trunc(Now * HoursPerDay * MinsPerHour * SecsPerMin * MSecsPerSec));
 end;
 
 end.
