@@ -237,9 +237,12 @@ function TestIsPNG(AStream: TStream): Boolean; overload;
 function TestIsPNG(const AFileName: TFileName): Boolean; overload;
 function TestIsPNM(AStream: TStream): Boolean; overload;
 function TestIsPNM(const AFileName: TFileName): Boolean; overload;
-function GetGraphicType(AStream: TStream): TGraphicType;
-function GetGraphicTypeString(AStream: TStream): string;
-function IsStreamGraphicSupported(AStream: TStream): Boolean;
+function GetGraphicType(AStream: TStream): TGraphicType; overload;
+function GetGraphicType(const AFileName: TFileName): TGraphicType; overload;
+function GetGraphicTypeString(AStream: TStream): string; overload;
+function GetGraphicTypeString(const AFileName: TFileName): string; overload;
+function IsGraphicSupported(AStream: TStream): Boolean; overload;
+function IsGraphicSupported(const AFileName: TFileName): Boolean; overload;
 
 { Util }
 
@@ -2183,14 +2186,50 @@ begin
     Result := gtPNM;
 end;
 
+function GetGraphicType(const AFileName: TFileName): TGraphicType;
+var
+  VFile: TFileStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  try
+    Result := GetGraphicType(VFile);
+  finally
+    VFile.Free;
+  end;
+end;
+
 function GetGraphicTypeString(AStream: TStream): string;
 begin
   Result := GraphicTypeToString(GetGraphicType(AStream));
 end;
 
-function IsStreamGraphicSupported(AStream: TStream): Boolean;
+function GetGraphicTypeString(const AFileName: TFileName): string;
+var
+  VFile: TFileStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  try
+    Result := GetGraphicTypeString(VFile);
+  finally
+    VFile.Free;
+  end;
+end;
+
+function IsGraphicSupported(AStream: TStream): Boolean;
 begin
   Result := GetGraphicType(AStream) <> gtUnknown;
+end;
+
+function IsGraphicSupported(const AFileName: TFileName): Boolean;
+var
+  VFile: TFileStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  try
+    Result := IsGraphicSupported(VFile);
+  finally
+    VFile.Free;
+  end;
 end;
 
 { Util }
