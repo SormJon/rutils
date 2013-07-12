@@ -220,7 +220,6 @@ procedure GetJSONObject(const S: TJSONStringType; out AJSON: TJSONObject);
 
 { Graphic }
 
-function ReadString(AStream: TStream; const ALength: Int64): string;
 function GraphicTypeToString(const AGraphicType: TGraphicType): string;
 function StringToGraphicType(const S: string): TGraphicType;
 function TestIsBMP(AStream: TStream): Boolean; overload;
@@ -247,6 +246,7 @@ function IsGraphicSupported(const AFileName: TFileName): Boolean; overload;
 { Util }
 
 function GetTickCount: DWord;
+function ReadString(AStream: TStream; const ALength: Int64): string;
 
 implementation
 
@@ -1834,12 +1834,6 @@ end;
 
 { Graphic }
 
-function ReadString(AStream: TStream; const ALength: Int64): string;
-begin
-  SetLength(Result, ALength);
-  AStream.Read(Pointer(Result)^, ALength);
-end;
-
 function GraphicTypeToString(const AGraphicType: TGraphicType): string;
 const
   CGraphicTypes: array[TGraphicType] of string = ('Unknown', 'BMP', 'Icon',
@@ -2237,6 +2231,12 @@ end;
 function GetTickCount: DWord;
 begin
   Result := DWord(Trunc(Now * HoursPerDay * MinsPerHour * SecsPerMin * MSecsPerSec));
+end;
+
+function ReadString(AStream: TStream; const ALength: Int64): string;
+begin
+  SetLength(Result, ALength);
+  AStream.Read(Pointer(Result)^, ALength);
 end;
 
 end.
