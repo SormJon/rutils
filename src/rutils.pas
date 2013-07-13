@@ -239,7 +239,6 @@ function TestIsPNM(AStream: TStream): Boolean; overload;
 function TestIsPNM(const AFileName: TFileName): Boolean; overload;
 function TestIsTiff(AStream: TStream): Boolean; overload;
 function TestIsTiff(const AFileName: TFileName): Boolean; overload;
-{ TODO: TestIsTiff }
 function GetGraphicType(AStream: TStream): TGraphicType; overload;
 function GetGraphicType(const AFileName: TFileName): TGraphicType; overload;
 function GetGraphicTypeString(AStream: TStream): string; overload;
