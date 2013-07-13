@@ -71,7 +71,8 @@ type
   TRegExModifiers = set of (rmModifierI, rmModifierR, rmModifierS, rmModifierG,
     rmModifierM, rmModifierX);
 
-  TGraphicType = (gtUnknown, gtBMP, gtIcon, gtJPEG, gtGIF, gtXPM, gtPNG, gtPNM { TODO: gtTiff });
+  TGraphicType = (gtUnknown, gtBMP, gtIcon, gtJPEG, gtGIF, gtXPM, gtPNG, gtPNM,
+    gtTiff);
 
 { (De)Compress }
 
@@ -236,6 +237,8 @@ function TestIsPNG(AStream: TStream): Boolean; overload;
 function TestIsPNG(const AFileName: TFileName): Boolean; overload;
 function TestIsPNM(AStream: TStream): Boolean; overload;
 function TestIsPNM(const AFileName: TFileName): Boolean; overload;
+function TestIsTiff(AStream: TStream): Boolean; overload;
+function TestIsTiff(const AFileName: TFileName): Boolean; overload;
 { TODO: TestIsTiff }
 function GetGraphicType(AStream: TStream): TGraphicType; overload;
 function GetGraphicType(const AFileName: TFileName): TGraphicType; overload;
@@ -1838,7 +1841,7 @@ end;
 function GraphicTypeToString(const AGraphicType: TGraphicType): string;
 const
   CGraphicTypes: array[TGraphicType] of string = ('Unknown', 'BMP', 'Icon',
-    'JPEG', 'GIF', 'XPM', 'PNG', 'PNM');
+    'JPEG', 'GIF', 'XPM', 'PNG', 'PNM', 'Tiff');
 begin
   Result := CGraphicTypes[AGraphicType];
 end;
@@ -1857,6 +1860,7 @@ begin
     'xpm': Result := gtXPM;
     'png': Result := gtPNG;
     'pbm', 'pgm', 'ppm': Result := gtPNM;
+    'tif', 'tiff': Result := gtTiff;
   end;
 end;
 
@@ -2154,6 +2158,82 @@ begin
   end;
 end;
 
+function TestIsTiff(AStream: TStream): Boolean;
+var
+  VIFDStart: DWord;
+  VOldPosition: Int64;
+  VReverseEndian: Boolean;
+
+  function FixEndian(AWord: Word): Word;
+  begin
+    Result := AWord;
+    if VReverseEndian then
+      Result := ((Result and $FF) shl 8) or (Result shr 8);
+  end;
+
+  function FixEndian(ADWord: DWord): DWord;
+  begin
+    Result := ADWord;
+    if VReverseEndian then
+      Result := ((Result and $FF) shl 24) or ((Result and $FF00) shl 8) or
+        ((Result and $FF0000) shr 8) or (Result shr 24);
+  end;
+
+  function ReadDWord: DWord;
+  begin
+    Result := FixEndian(AStream.ReadDWord);
+  end;
+
+  function ReadWord: Word;
+  begin
+    Result := FixEndian(AStream.ReadWord);
+  end;
+
+  function ReadTiffHeader(out AIFDStart: DWord): Boolean;
+  var
+    VFortyTwo: Word;
+    VByteOrder: string;
+    VBigEndian: Boolean;
+  begin
+    Result := False;
+    VByteOrder := '  ';
+    AStream.Read(VByteOrder[1], 2);
+    case VByteOrder of
+      'II': VBigEndian := False;
+      'MM': VBigEndian := True;
+    else
+      Exit;
+    end;
+    VReverseEndian :={$IFDEF FPC_BIG_ENDIAN}not{$ENDIF}VBigEndian;
+    VFortyTwo := ReadWord;
+    if VFortyTwo <> 42 then
+      Exit;
+    AIFDStart := ReadDWord;
+    Result := True;
+  end;
+
+begin
+  try
+    VOldPosition := AStream.Position;
+    Result := ReadTiffHeader(VIFDStart) and (VIFDStart <> 0);
+    AStream.Position := VOldPosition;
+  except
+    Result := False;
+  end;
+end;
+
+function TestIsTiff(const AFileName: TFileName): Boolean;
+var
+  VFile: TFileStream;
+begin
+  VFile := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  try
+    Result := TestIsTiff(VFile);
+  finally
+    VFile.Free;
+  end;
+end;
+
 function GetGraphicType(AStream: TStream): TGraphicType;
 begin
   Result := gtUnknown;
@@ -2178,7 +2258,10 @@ begin
     Result := gtPNG
   else
   if TestIsPNM(AStream) then
-    Result := gtPNM;
+    Result := gtPNM
+  else
+  if TestIsTiff(AStream) then
+    Result := gtTiff;
 end;
 
 function GetGraphicType(const AFileName: TFileName): TGraphicType;
