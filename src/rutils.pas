@@ -71,7 +71,7 @@ type
   TRegExModifiers = set of (rmModifierI, rmModifierR, rmModifierS, rmModifierG,
     rmModifierM, rmModifierX);
 
-  TGraphicType = (gtUnknown, gtBMP, gtIcon, gtJPEG, gtGIF, gtXPM, gtPNG, gtPNM);
+  TGraphicType = (gtUnknown, gtBMP, gtIcon, gtJPEG, gtGIF, gtXPM, gtPNG, gtPNM { TODO: gtTiff });
 
 { (De)Compress }
 
@@ -236,6 +236,7 @@ function TestIsPNG(AStream: TStream): Boolean; overload;
 function TestIsPNG(const AFileName: TFileName): Boolean; overload;
 function TestIsPNM(AStream: TStream): Boolean; overload;
 function TestIsPNM(const AFileName: TFileName): Boolean; overload;
+{ TODO: TestIsTiff }
 function GetGraphicType(AStream: TStream): TGraphicType; overload;
 function GetGraphicType(const AFileName: TFileName): TGraphicType; overload;
 function GetGraphicTypeString(AStream: TStream): string; overload;
