@@ -20,12 +20,16 @@
     </CompilerOptions>
     <Description Value="RUtils offers some general purpose routines on string conversions, parsings or encodings."/>
     <License Value="Please see the LICENSE file."/>
-    <Version Release="5"/>
-    <Files Count="1">
+    <Version Release="6"/>
+    <Files Count="2">
       <Item1>
+        <Filename Value="..\src\rgutils.pas"/>
+        <UnitName Value="RGUtils"/>
+      </Item1>
+      <Item2>
         <Filename Value="..\src\rutils.pas"/>
         <UnitName Value="RUtils"/>
-      </Item1>
+      </Item2>
     </Files>
     <Type Value="RunTimeOnly"/>
     <UsageOptions>
