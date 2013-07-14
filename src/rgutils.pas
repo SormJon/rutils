@@ -19,6 +19,8 @@ type
     gtUnknown, gtBMP, gtIcon, gtJPEG, gtGIF, gtXPM, gtPNG, gtPNM, gtTiff
   );
 
+  EGraphic = class(Exception);
+
 { Math }
 
 function GetGraphicRect(ASourceWidth, ASourceHeight, ADestinationWidth,
@@ -58,6 +60,10 @@ function IsGraphicSupported(const AFileName: TFileName): Boolean; overload;
 procedure ResizeGraphic(ASource, ADestination: TFPMemoryImage;
   const AStretch: Boolean = True; const AProportional: Boolean = True;
   const ACenter: Boolean = True); overload;
+function CreateGraphicWriter(
+  const AGraphicType: TGraphicType): TFPCustomImageWriter;
+function CreateGraphicReader(
+  const AGraphicType: TGraphicType): TFPCustomImageReader;
 
 implementation
 
@@ -620,5 +626,27 @@ begin
   end;
 end;
 {$WARNINGS ON}
+
+function CreateGraphicWriter(
+  const AGraphicType: TGraphicType): TFPCustomImageWriter;
+var
+  VWriterClass: TFPCustomImageWriterClass;
+begin
+  VWriterClass := GetGraphicWriterClass(AGraphicType);
+  if not Assigned(VWriterClass) then
+    EGraphic.Create('CreateGraphicWriter: Unknown writer.');
+  Result := VWriterClass.Create;
+end;
+
+function CreateGraphicReader(
+  const AGraphicType: TGraphicType): TFPCustomImageReader;
+var
+  VReaderClass: TFPCustomImageReaderClass;
+begin
+  VReaderClass := GetGraphicReaderClass(AGraphicType);
+  if not Assigned(VReaderClass) then
+    EGraphic.Create('CreateGraphicReader: Unknown reader.');
+  Result := VReaderClass.Create;
+end;
 
 end.
