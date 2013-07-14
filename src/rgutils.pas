@@ -19,6 +19,12 @@ type
     gtUnknown, gtBMP, gtIcon, gtJPEG, gtGIF, gtXPM, gtPNG, gtPNM, gtTiff
   );
 
+{ Util }
+
+function GetGraphicRect(ASourceWidth, ASourceHeight, ADestinationWidth,
+  ADestinationHeight: Integer; const AStretch, AProportional,
+  ACenter: Boolean): TRect;
+
 { Graphic }
 
 function GraphicTypeToString(const AGraphicType: TGraphicType): string;
@@ -47,6 +53,41 @@ function IsGraphicSupported(AStream: TStream): Boolean; overload;
 function IsGraphicSupported(const AFileName: TFileName): Boolean; overload;
 
 implementation
+
+{ Util }
+
+function GetGraphicRect(ASourceWidth, ASourceHeight, ADestinationWidth,
+  ADestinationHeight: Integer; const AStretch, AProportional,
+  ACenter: Boolean): TRect;
+var
+  VWidth, VHeight: Integer;
+begin
+  if AProportional and (((ASourceWidth > ADestinationWidth) or
+    (ASourceHeight > ADestinationHeight)) and (ASourceWidth > 0) and
+    (ASourceHeight > 0)) then
+  begin
+    VWidth := ADestinationWidth;
+    VHeight := (ASourceHeight * VWidth) div ASourceWidth;
+    if VHeight > ADestinationHeight then
+    begin
+      VHeight := ADestinationHeight;
+      VWidth := (ASourceWidth * VHeight) div ASourceHeight;
+    end;
+    ASourceWidth := VWidth;
+    ASourceHeight := VHeight;
+  end
+  else
+    if AStretch then
+    begin
+      ASourceWidth := ADestinationWidth;
+      ASourceHeight := ADestinationHeight;
+    end;
+  Result := Rect(0, 0, ASourceWidth, ASourceHeight);
+  if ACenter then
+    Result := Rect((ADestinationWidth div 2) - (ASourceWidth div 2),
+      (ADestinationHeight div 2) - (ASourceHeight div 2),
+      ASourceWidth, ASourceHeight);
+end;
 
 { Graphic }
 
