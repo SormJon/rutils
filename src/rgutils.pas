@@ -56,7 +56,8 @@ function GetGraphicTypeString(const AFileName: TFileName): string; overload;
 function IsGraphicSupported(AStream: TStream): Boolean; overload;
 function IsGraphicSupported(const AFileName: TFileName): Boolean; overload;
 procedure ResizeGraphic(ASource, ADestination: TFPMemoryImage;
-  const AStretch, AProportional, ACenter: Boolean);
+  const AStretch: Boolean = True; const AProportional: Boolean = True;
+  const ACenter: Boolean = True); overload;
 
 implementation
 
