@@ -12,7 +12,7 @@ unit RGUtils;
 interface
 
 uses
-  FPimage, Classes, SysUtils;
+  FPimage, FPImgCanv, Classes, SysUtils;
 
 type
   TGraphicType = (
@@ -55,6 +55,7 @@ function GetGraphicTypeString(AStream: TStream): string; overload;
 function GetGraphicTypeString(const AFileName: TFileName): string; overload;
 function IsGraphicSupported(AStream: TStream): Boolean; overload;
 function IsGraphicSupported(const AFileName: TFileName): Boolean; overload;
+procedure ResizeGraphic(ASource, ADestination: TFPMemoryImage);
 
 implementation
 
@@ -598,5 +599,23 @@ begin
     VFile.Free;
   end;
 end;
+
+{$WARNINGS OFF}
+procedure ResizeGraphic(ASource, ADestination: TFPMemoryImage);
+var
+  VRect: TRect;
+  VCanvas: TFPImageCanvas;
+begin
+  VCanvas := TFPImageCanvas.Create(ADestination);
+  try
+    VRect := GetGraphicRect(ASource.Width, ASource.Height, ADestination.Width,
+      ADestination.Height, True, True, True);
+    VCanvas.StretchDraw(VRect.Left, VRect.Top, VRect.Right, VRect.Bottom,
+      ASource);
+  finally
+    VCanvas.Free;
+  end;
+end;
+{$WARNINGS ON}
 
 end.
