@@ -12,14 +12,14 @@ unit RGUtils;
 interface
 
 uses
-  Classes, SysUtils;
+  FPimage, Classes, SysUtils;
 
 type
   TGraphicType = (
     gtUnknown, gtBMP, gtIcon, gtJPEG, gtGIF, gtXPM, gtPNG, gtPNM, gtTiff
   );
 
-{ Util }
+{ Math }
 
 function GetGraphicRect(ASourceWidth, ASourceHeight, ADestinationWidth,
   ADestinationHeight: Integer; const AStretch, AProportional,
@@ -27,6 +27,10 @@ function GetGraphicRect(ASourceWidth, ASourceHeight, ADestinationWidth,
 
 { Graphic }
 
+function GetGraphicWriterClass(
+  const AGraphicType: TGraphicType): TFPCustomImageWriterClass;
+function GetGraphicReaderClass(
+  const AGraphicType: TGraphicType): TFPCustomImageReaderClass;
 function GraphicTypeToString(const AGraphicType: TGraphicType): string;
 function StringToGraphicType(const S: string): TGraphicType;
 function TestIsBMP(AStream: TStream): Boolean; overload;
@@ -54,7 +58,7 @@ function IsGraphicSupported(const AFileName: TFileName): Boolean; overload;
 
 implementation
 
-{ Util }
+{ Math }
 
 function GetGraphicRect(ASourceWidth, ASourceHeight, ADestinationWidth,
   ADestinationHeight: Integer; const AStretch, AProportional,
@@ -90,6 +94,38 @@ begin
 end;
 
 { Graphic }
+
+function GetGraphicWriterClass(
+  const AGraphicType: TGraphicType): TFPCustomImageWriterClass;
+begin
+  case AGraphicType of
+    gtUnknown: Result := nil;
+    gtBMP: Result := ImageHandlers.ImageWriter['BMP Format'];
+    gtIcon: Result := nil;
+    gtJPEG: Result := ImageHandlers.ImageWriter['JPEG graphics'];
+    gtGIF: Result := ImageHandlers.ImageWriter['GIF Graphics'];
+    gtXPM: Result := ImageHandlers.ImageWriter['XPM Format'];
+    gtPNG: Result := ImageHandlers.ImageWriter['Portable Network Graphics'];
+    gtPNM: Result := ImageHandlers.ImageWriter['Netpbm Portable aNyMap'];
+    gtTiff: Result := ImageHandlers.ImageWriter['Tagged Image File Format'];
+  end;
+end;
+
+function GetGraphicReaderClass(
+  const AGraphicType: TGraphicType): TFPCustomImageReaderClass;
+begin
+  case AGraphicType of
+    gtUnknown: Result := nil;
+    gtBMP: Result := ImageHandlers.ImageReader['BMP Format'];
+    gtIcon: Result := nil;
+    gtJPEG: Result := ImageHandlers.ImageReader['JPEG Graphics'];
+    gtGIF: Result := ImageHandlers.ImageReader['GIF Graphics'];
+    gtXPM: Result := ImageHandlers.ImageReader['XPM Format'];
+    gtPNG: Result := ImageHandlers.ImageReader['Portable Network Graphics'];
+    gtPNM: Result := ImageHandlers.ImageReader['Netpbm format'];
+    gtTiff: Result := ImageHandlers.ImageReader['Tagged Image File Format'];
+  end;
+end;
 
 function GraphicTypeToString(const AGraphicType: TGraphicType): string;
 const
