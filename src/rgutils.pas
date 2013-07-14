@@ -634,7 +634,7 @@ var
 begin
   VWriterClass := GetGraphicWriterClass(AGraphicType);
   if not Assigned(VWriterClass) then
-    EGraphic.Create('CreateGraphicWriter: Unknown writer.');
+    raise EGraphic.Create('CreateGraphicWriter: Unknown writer.');
   Result := VWriterClass.Create;
 end;
 
@@ -645,7 +645,7 @@ var
 begin
   VReaderClass := GetGraphicReaderClass(AGraphicType);
   if not Assigned(VReaderClass) then
-    EGraphic.Create('CreateGraphicReader: Unknown reader.');
+    raise EGraphic.Create('CreateGraphicReader: Unknown reader.');
   Result := VReaderClass.Create;
 end;
 
