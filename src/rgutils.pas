@@ -21,6 +21,10 @@ type
 
   EGraphic = class(Exception);
 
+var
+  SCreateGraphicWriterError: string = 'CreateGraphicWriter: Unknown writer.';
+  SCreateGraphicReaderError: string = 'CreateGraphicReader: Unknown reader.';
+
 { Math }
 
 function GetGraphicRect(ASourceWidth, ASourceHeight, ADestinationWidth,
@@ -634,7 +638,7 @@ var
 begin
   VWriterClass := GetGraphicWriterClass(AGraphicType);
   if not Assigned(VWriterClass) then
-    raise EGraphic.Create('CreateGraphicWriter: Unknown writer.');
+    raise EGraphic.Create(SCreateGraphicWriterError);
   Result := VWriterClass.Create;
 end;
 
@@ -645,7 +649,7 @@ var
 begin
   VReaderClass := GetGraphicReaderClass(AGraphicType);
   if not Assigned(VReaderClass) then
-    raise EGraphic.Create('CreateGraphicReader: Unknown reader.');
+    raise EGraphic.Create(SCreateGraphicReaderError);
   Result := VReaderClass.Create;
 end;
 
