@@ -55,7 +55,8 @@ function GetGraphicTypeString(AStream: TStream): string; overload;
 function GetGraphicTypeString(const AFileName: TFileName): string; overload;
 function IsGraphicSupported(AStream: TStream): Boolean; overload;
 function IsGraphicSupported(const AFileName: TFileName): Boolean; overload;
-procedure ResizeGraphic(ASource, ADestination: TFPMemoryImage);
+procedure ResizeGraphic(ASource, ADestination: TFPMemoryImage;
+  const AStretch, AProportional, ACenter: Boolean);
 
 implementation
 
@@ -601,7 +602,8 @@ begin
 end;
 
 {$WARNINGS OFF}
-procedure ResizeGraphic(ASource, ADestination: TFPMemoryImage);
+procedure ResizeGraphic(ASource, ADestination: TFPMemoryImage;
+  const AStretch, AProportional, ACenter: Boolean);
 var
   VRect: TRect;
   VCanvas: TFPImageCanvas;
@@ -609,7 +611,7 @@ begin
   VCanvas := TFPImageCanvas.Create(ADestination);
   try
     VRect := GetGraphicRect(ASource.Width, ASource.Height, ADestination.Width,
-      ADestination.Height, True, True, True);
+      ADestination.Height, AStretch, AProportional, ACenter);
     VCanvas.StretchDraw(VRect.Left, VRect.Top, VRect.Right, VRect.Bottom,
       ASource);
   finally
