@@ -166,6 +166,9 @@ function Implode(const AArray: array of string;
   const ADelimiter: string = SP): string;
 function Occurs(const S, APart: string): SizeInt;
 function Occurs(const S: string; const AParts: array of string): SizeInt;
+function Exists(const S: string; const AParts: array of string): Boolean; overload;
+function Exists(const S: string; const AParts: array of string;
+  const AIgnoreCase: Boolean): Boolean; overload;
 { This function takes two strings and compares them. The first string can be
   anything, but should not contain pattern characters (* or ?). The pattern
   string can have as many of these pattern characters as you want.
@@ -1271,6 +1274,38 @@ begin
       Inc(Result);
     end;
   end;
+end;
+
+function Exists(const S: string; const AParts: array of string): Boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to High(AParts) do
+  begin
+    Result := S = AParts[I];
+    if Result then
+      Exit;
+  end;
+  Result := False;
+end;
+
+function Exists(const S: string; const AParts: array of string;
+  const AIgnoreCase: Boolean): Boolean;
+var
+  I: Integer;
+begin
+  if AIgnoreCase then
+  begin
+    for I := 0 to High(AParts) do
+    begin
+      Result := CompareText(S, AParts[I]) = 0;
+      if Result then
+        Exit;
+    end;
+    Result := False;
+  end
+  else
+    Result := Exists(S, AParts);
 end;
 
 function MatchStrings(ASource, APattern: string): Boolean;
