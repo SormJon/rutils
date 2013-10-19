@@ -2,7 +2,7 @@
   RUtils plugin.
   Copyright (C) 2012-2014 Silvio Clecio.
 
-  Please see the LICENSE file.
+  Please see the LICENSE, README and AUTHORS files.
 *)
 
 unit RUtils;
@@ -43,14 +43,14 @@ const
   SYMBOLS = '!"#$%&*(){}[]<>=+-\|/,.:;?@^_~`''';
   HexCharsArray: array[0..15] of Char = ('0', '1', '2', '3', '4', '5', '6', '7',
     '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
-  LatinCharsCount = 75;
-  LatinChars: array[1..LatinCharsCount] of string = (
+  LatinCharsCount = 74;
+  LatinChars: array[0..LatinCharsCount] of string = (
     '"', '<', '>', '^', '~', '£', '§', '°', '²', '³', 'µ', '·', '¼', '½', '¿',
     'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Æ', 'Ç', 'È', 'É', 'Ê', 'Ë', 'Ì', 'Í', 'Î',
     'Ï', 'Ñ', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ù', 'Ú', 'Û', 'Ü', 'Ý', 'ß', 'á', 'à',
     'â', 'ã', 'ä', 'å', 'æ', 'ç', 'é', 'è', 'ê', 'ë', 'ì', 'í', 'î', 'ï', 'ñ',
     'ò', 'ó', 'ô', 'õ', 'ö', '÷', 'ù', 'ú', 'û', 'ü', 'ý', 'ÿ', '&', '´', '`');
-  HtmlChars: array[1..LatinCharsCount] of string = (
+  HtmlChars: array[0..LatinCharsCount] of string = (
     '&quot;', '&lt;', '&gt;', '&circ;', '&tilde;', '&pound;', '&sect;', '&deg;',
     '&sup2;', '&sup3;', '&micro;', '&middot;', '&frac14;', '&frac12;', '&iquest;',
     '&Agrave;', '&Aacute;', '&Acirc;', '&Atilde;', '&Auml;', '&Aring;', '&AElig;',
@@ -711,82 +711,86 @@ begin
 end;
 
 function StrToHtml(const S: string): string;
+
+  function _Found(const ABuf: PChar; const ALen: Integer): Integer; inline;
+  var
+    P: PString;
+  begin
+    for Result := Low(LatinChars) to High(LatinChars) do
+    begin
+      P := @LatinChars[Result];
+      if Length(P^) <= ALen then
+        // compare in blocks of 8(x64), 4, 2 and 1 byte
+        if CompareByte(P^[1], ABuf^, Length(P^)) = 0 then
+          Exit;
+    end;
+    Result := -1;
+  end;
+
 var
-  L, C: Integer;
-  VFound: Boolean;
-  PComp, PSrc, PLast: PChar;
-  VResStr, VCompStr: string;
+  I: Integer;
+  VResStr: string;
+  PComp, PLast: PChar;
 begin
-  L := Length(LatinChars);
-  if L <> Length(HtmlChars) then
-    raise Exception.Create(SErrAmountStrings);
-  Dec(L);
-  VCompStr := S;
-  VResStr := ES;
-  PSrc := @S[1];
-  PComp := @VCompStr[1];
+  VResStr := '';
+  PComp := @S[1];
   PLast := PComp + Length(S);
   while PComp < PLast do
   begin
-    VFound := False;
-    for C := 1 to L do
+    I := _Found(PComp, PLast - PComp);
+    if I > -1 then
     begin
-      if (Length(LatinChars[C]) > 0) and (LatinChars[C][1] = PComp^) and
-        (Length(LatinChars[C]) <= (PLast - PComp)) and
-        (CompareByte(LatinChars[C][1], PComp^, Length(LatinChars[C])) = 0) then
-      begin
-        VResStr := VResStr + HtmlChars[C];
-        PComp := PComp + Length(LatinChars[C]);
-        PSrc := PSrc + Length(LatinChars[C]);
-        VFound := True;
-      end;
-    end;
-    if not VFound then
+      VResStr := VResStr + HtmlChars[I];
+      Inc(PComp, Length(LatinChars[I]));
+    end
+    else
     begin
-      VResStr := VResStr + PSrc^;
+      // it can be optimized decreasing the concatenations
+      VResStr := VResStr + PComp^;
       Inc(PComp);
-      Inc(PSrc);
     end;
   end;
   Result := VResStr;
 end;
 
 function HtmlToStr(const S: string): string;
+
+  function _Found(const ABuf: PChar; const ALen: Integer): Integer; inline;
+  var
+    P: PString;
+  begin
+    for Result := Low(HtmlChars) to High(HtmlChars) do
+    begin
+      P := @HtmlChars[Result];
+      if Length(P^) <= ALen then
+        // compare in blocks of 8(x64), 4, 2 and 1 byte
+        if CompareByte(P^[1], ABuf^, Length(P^)) = 0 then
+          Exit;
+    end;
+    Result := -1;
+  end;
+
 var
-  L, C: Integer;
-  VFound: Boolean;
-  PComp, PSrc, PLast: PChar;
-  VResStr, VCompStr: string;
+  I: Integer;
+  VResStr: string;
+  PComp, PLast: PChar;
 begin
-  L := Length(HtmlChars);
-  if L <> Length(LatinChars) then
-    raise Exception.Create(SErrAmountStrings);
-  Dec(L);
-  VCompStr := S;
-  VResStr := ES;
-  PSrc := @S[1];
-  PComp := @VCompStr[1];
+  VResStr := '';
+  PComp := @S[1];
   PLast := PComp + Length(S);
   while PComp < PLast do
   begin
-    VFound := False;
-    for C := 1 to L do
+    I := _Found(PComp, PLast - PComp);
+    if I > -1 then
     begin
-      if (Length(HtmlChars[C]) > 0) and (HtmlChars[C][1] = PComp^) and
-        (Length(HtmlChars[C]) <= (PLast - PComp)) and
-        (CompareByte(HtmlChars[C][1], PComp^, Length(HtmlChars[C])) = 0) then
-      begin
-        VResStr := VResStr + LatinChars[C];
-        PComp := PComp + Length(HtmlChars[C]);
-        PSrc := PSrc + Length(HtmlChars[C]);
-        VFound := True;
-      end;
-    end;
-    if not VFound then
+      VResStr := VResStr + LatinChars[I];
+      Inc(PComp, Length(HtmlChars[I]));
+    end
+    else
     begin
-      VResStr := VResStr + PSrc^;
+      // it can be optimized decreasing the concatenations
+      VResStr := VResStr + PComp^;
       Inc(PComp);
-      Inc(PSrc);
     end;
   end;
   Result := VResStr;
