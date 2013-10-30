@@ -223,6 +223,7 @@ procedure GetJSONObject(const S: TJSONStringType; out AJSON: TJSONObject);
 
 function GetTickCount: DWord;
 function ReadString(AStream: TStream; const ALength: Int64): string;
+procedure Concat(var A: TBytes; const B: TBytes);
 
 implementation
 
@@ -1855,6 +1856,16 @@ function ReadString(AStream: TStream; const ALength: Int64): string;
 begin
   SetLength(Result, ALength);
   AStream.Read(Pointer(Result)^, ALength);
+end;
+
+procedure Concat(var A: TBytes; const B: TBytes);
+var
+  LA, LB: Int64;
+begin
+  LA := Length(A);
+  LB := Length(B);
+  SetLength(A, LA + LB);
+  Move(B[0], A[LA], LB);
 end;
 
 end.
