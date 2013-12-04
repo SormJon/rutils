@@ -183,6 +183,8 @@ function Between(const AStart, AEnd: string; const S: string;
   const AIgnoreCase: Boolean): string; overload;
 function RemoveDiacritics(const S: string): string;
 function RemoveSpecialChars(const S: string): string;
+function Prefix(const S: string; const APrefix: string): string; inline;
+function Suffix(const S: string; const ASuffix: string): string; inline;
 
 { Conditional }
 
@@ -1589,6 +1591,16 @@ begin
     Inc(PS);
   end;
   SetLength(Result, I);
+end;
+
+function Prefix(const S: string; const APrefix: string): string;
+begin
+  Result := Iif(S = '', '', APrefix + S);
+end;
+
+function Suffix(const S: string; const ASuffix: string): string;
+begin
+  Result := Iif(S = '', '', S + ASuffix);
 end;
 
 { Conditional }
