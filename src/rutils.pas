@@ -227,6 +227,10 @@ function GetTickCount: DWord;
 function ReadString(AStream: TStream; const ALength: Int64): string;
 procedure Concat(var A: TBytes; const B: TBytes);
 
+{ Process }
+
+function System(const ACmd: string; const AFlags: TExecuteFlags = []): Integer;
+
 implementation
 
 { (De)Compress }
@@ -1878,6 +1882,24 @@ begin
   LB := Length(B);
   SetLength(A, LA + LB);
   Move(B[0], A[LA], LB);
+end;
+
+function System(const ACmd: string; const AFlags: TExecuteFlags): Integer;
+{$IFDEF UNIX}
+var
+  S: string;
+{$ENDIF}
+begin
+{$IFDEF UNIX}
+  if FileExists('sh') then
+    S := 'sh'
+  else
+    S := ExeSearch('sh');
+  Result := ExecuteProcess(S, '-c "' + ACmd + '"', AFlags)
+{$ENDIF}
+{$IFDEF MSWINDOWS}
+  Result := ExecuteProcess('cmd', '/c ' + ACmd, AFlags);
+{$ENDIF}
 end;
 
 end.
