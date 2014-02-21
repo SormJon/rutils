@@ -1926,6 +1926,9 @@ begin
         tkInteger, tkChar, tkEnumeration, tkSet, tkClass:
           if Assigned(PI) then
             SetOrdProp(ATo, PI, GetOrdProp(AFrom, PL^[I]));
+        tkInt64:
+          if Assigned(PI) then
+            SetInt64Prop(ATo, PI, GetInt64Prop(AFrom, PL^[I]));
         tkFloat:
           if Assigned(PI) then
             SetFloatProp(ATo, PI, GetFloatProp(AFrom, PL^[I]));
