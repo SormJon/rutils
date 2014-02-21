@@ -16,7 +16,7 @@ uses
   MacUUID,
 {$ENDIF}
   Classes, SysUtils, StrUtils, Base64, BlowFish, MD5, SHA1, RegExpr, FPJSON,
-  HTTPDefs, ZStream, JSONParser;
+  HTTPDefs, ZStream, JSONParser, TypInfo;
 
 const
   BR = '<br />';
@@ -230,6 +230,10 @@ procedure Concat(var A: TBytes; const B: TBytes);
 { Process }
 
 function System(const ACmd: string; const AFlags: TExecuteFlags = []): Integer;
+
+{ RTTI }
+
+procedure CopyObject(AFrom, ATo: TObject);
 
 implementation
 
@@ -1900,6 +1904,39 @@ begin
 {$IFDEF MSWINDOWS}
   Result := ExecuteProcess('cmd', '/c ' + ACmd, AFlags);
 {$ENDIF}
+end;
+
+procedure CopyObject(AFrom, ATo: TObject);
+var
+  PL: PPropList;
+  PI: PPropInfo;
+  C, I: Integer;
+begin
+  C := GetPropList(AFrom.ClassInfo, tkAny, nil);
+  GetMem(PL, C * SizeOf(PPropInfo));
+  try
+    GetPropList(AFrom.ClassInfo, tkAny, PL);
+    for I := 0 to Pred(C) do
+    begin
+      PI := GetPropInfo(ATo.ClassInfo, PL^[I]^.Name);
+      case PL^[I]^.PropType^.Kind of
+        tkAString:
+          if Assigned(PI) and not SameText(PL^[I]^.Name, 'name') then
+            SetStrProp(ATo, PI, GetStrProp(AFrom, PL^[I]));
+        tkInteger, tkChar, tkEnumeration, tkSet, tkClass:
+          if Assigned(PI) then
+            SetOrdProp(ATo, PI, GetOrdProp(AFrom, PL^[I]));
+        tkFloat:
+          if Assigned(PI) then
+            SetFloatProp(ATo, PI, GetFloatProp(AFrom, PL^[I]));
+        tkMethod:
+          if Assigned(PI) then
+            SetMethodProp(ATo, PI, GetMethodProp(AFrom, PL^[I]));
+      end;
+    end
+  finally
+    FreeMem(PL, C * SizeOf(PPropInfo));
+  end;
 end;
 
 end.

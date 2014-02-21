@@ -20,7 +20,7 @@
     </CompilerOptions>
     <Description Value="RUtils offers some general purpose routines on string conversions, parsings or encodings."/>
     <License Value="Please see the LICENSE file."/>
-    <Version Release="11"/>
+    <Version Release="12"/>
     <Files Count="2">
       <Item1>
         <Filename Value="..\src\rgutils.pas"/>
