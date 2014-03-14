@@ -71,6 +71,8 @@ type
   TRegExModifiers = set of (rmModifierI, rmModifierR, rmModifierS, rmModifierG,
     rmModifierM, rmModifierX);
 
+  ERUtils = class(Exception);
+
 { (De)Compress }
 
 procedure ZCompressStream(AIn, AOut: TStream;
@@ -220,6 +222,11 @@ procedure GetJSONArray(AStream: TStream; out AJSON: TJSONArray);
 procedure GetJSONArray(const S: TJSONStringType; out AJSON: TJSONArray);
 procedure GetJSONObject(AStream: TStream; out AJSON: TJSONObject);
 procedure GetJSONObject(const S: TJSONStringType; out AJSON: TJSONObject);
+procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
+  AObject: TObject; AJson: TJSONObject; AIgnoredFields: TStrings); overload;
+{ TODO:
+procedure ObjectToJSON(AObject: TObject; AJson: TJSONObject;
+  AIgnoredFields: TStrings); overload; }
 
 { Util }
 
@@ -846,7 +853,7 @@ end;
 function FileDateTime(const AFileName: TFileName): TDateTime;
 begin
   if not FileExists(AFileName) then
-    raise Exception.Create('File not found: ' + AFileName);
+    raise ERUtils.Create('File not found: ' + AFileName);
   Result := FileDateToDateTime(FileAge(AFileName));
 end;
 
@@ -1862,6 +1869,47 @@ begin
     AJSON := VParser.Parse as TJSONObject;
   finally
     VParser.Free;
+  end;
+end;
+
+procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
+  AObject: TObject; AJson: TJSONObject; AIgnoredFields: TStrings);
+var
+  F: Double;
+  I: Integer;
+  PI: PPropInfo;
+begin
+  if not Assigned(APropList) then
+    raise ERUtils.Create('APropList must not be nil.');
+  if not Assigned(AObject) then
+    raise ERUtils.Create('AObject must not be nil.');
+  if not Assigned(AJson) then
+    raise ERUtils.Create('AJson must not be nil.');
+  for I := 0 to Pred(APropCount) do
+  begin
+    PI := APropList^[I];
+    if AIgnoredFields.IndexOf(PI^.Name) > -1 then
+      Continue;
+    case PI^.PropType^.Kind of
+      tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
+      tkChar: AJson.Add(PI^.Name, Char(GetOrdProp(AObject, PI)));
+      tkInteger: AJson.Add(PI^.Name, GetOrdProp(AObject, PI));
+      tkInt64, tkQWord: AJson.Add(PI^.Name, GetInt64Prop(AObject, PI));
+      tkBool: AJson.Add(PI^.Name, GetOrdProp(AObject, PI) <> 0);
+      tkFloat:
+        begin
+          F := GetFloatProp(AObject, PI);
+          case PI^.PropType^.Name of
+            'TDate': AJson.Add(PI^.Name, DateToStr(F));
+            'TTime': AJson.Add(PI^.Name, TimeToStr(F));
+            'TDateTime': AJson.Add(PI^.Name, DateTimeToStr(F));
+          else
+            AJson.Add(PI^.Name, FloatToStr(F))
+          end;
+        end;
+      tkEnumeration: AJson.Add(PI^.Name, GetEnumProp(AObject, PI));
+      tkSet: AJson.Add(PI^.Name, GetSetProp(AObject, PI, False));
+    end;
   end;
 end;
 
