@@ -231,6 +231,15 @@ procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
   const AIgnoredProps: array of string); overload;
 procedure ObjectToJSON(AObject: TObject; AJson: TJSONObject;
   const AIgnoredProps: array of string); overload;
+procedure PropsToJSON(APropList: PPropList; const APropCount: Integer;
+  AObject: TObject; AJson: TJSONObject; AProps: TStrings); overload;
+procedure PropsToJSON(AObject: TObject; AJson: TJSONObject;
+  AProps: TStrings); overload;
+procedure PropsToJSON(APropList: PPropList; const APropCount: Integer;
+  AObject: TObject; AJson: TJSONObject;
+  const AProps: array of string); overload;
+procedure PropsToJSON(AObject: TObject; AJson: TJSONObject;
+  const AProps: array of string); overload;
 
 { Util }
 
@@ -1985,6 +1994,119 @@ begin
   if Assigned(PL) then
     try
       RUtils.ObjectToJSON(PL, C, AObject, AJson, AIgnoredProps);
+    finally
+      FreeMem(PL);
+    end;
+end;
+
+procedure PropsToJSON(APropList: PPropList; const APropCount: Integer;
+  AObject: TObject; AJson: TJSONObject; AProps: TStrings);
+var
+  F: Double;
+  I: Integer;
+  PI: PPropInfo;
+begin
+  if not Assigned(APropList) then
+    raise ERUtils.Create('APropList must not be nil.');
+  if not Assigned(AObject) then
+    raise ERUtils.Create('AObject must not be nil.');
+  if not Assigned(AJson) then
+    raise ERUtils.Create('AJson must not be nil.');
+  if not Assigned(AProps) then
+    raise ERUtils.Create('AProps must not be nil.');
+  for I := 0 to Pred(APropCount) do
+  begin
+    PI := APropList^[I];
+    if AProps.IndexOf(PI^.Name) < 0 then
+      Continue;
+    case PI^.PropType^.Kind of
+      tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
+      tkChar: AJson.Add(PI^.Name, Char(GetOrdProp(AObject, PI)));
+      tkInteger: AJson.Add(PI^.Name, GetOrdProp(AObject, PI));
+      tkInt64, tkQWord: AJson.Add(PI^.Name, GetInt64Prop(AObject, PI));
+      tkBool: AJson.Add(PI^.Name, GetOrdProp(AObject, PI) <> 0);
+      tkFloat:
+        begin
+          F := GetFloatProp(AObject, PI);
+          case PI^.PropType^.Name of
+            'TDate': AJson.Add(PI^.Name, DateToStr(F));
+            'TTime': AJson.Add(PI^.Name, TimeToStr(F));
+            'TDateTime': AJson.Add(PI^.Name, DateTimeToStr(F));
+          else
+            AJson.Add(PI^.Name, FloatToStr(F))
+          end;
+        end;
+      tkEnumeration: AJson.Add(PI^.Name, GetEnumProp(AObject, PI));
+      tkSet: AJson.Add(PI^.Name, GetSetProp(AObject, PI, False));
+    end;
+  end;
+end;
+
+procedure PropsToJSON(AObject: TObject; AJson: TJSONObject; AProps: TStrings);
+var
+  C: Integer;
+  PL: PPropList = nil;
+begin
+  C := GetPropList(AObject, PL);
+  if Assigned(PL) then
+    try
+      RUtils.PropsToJSON(PL, C, AObject, AJson, AProps);
+    finally
+      FreeMem(PL);
+    end;
+end;
+
+procedure PropsToJSON(APropList: PPropList; const APropCount: Integer;
+  AObject: TObject; AJson: TJSONObject; const AProps: array of string);
+var
+  F: Double;
+  I: Integer;
+  PI: PPropInfo;
+begin
+  if not Assigned(APropList) then
+    raise ERUtils.Create('APropList must not be nil.');
+  if not Assigned(AObject) then
+    raise ERUtils.Create('AObject must not be nil.');
+  if not Assigned(AJson) then
+    raise ERUtils.Create('AJson must not be nil.');
+  for I := 0 to Pred(APropCount) do
+  begin
+    PI := APropList^[I];
+    if not Exists(PI^.Name, AProps, True) then
+      Continue;
+    case PI^.PropType^.Kind of
+      tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
+      tkChar: AJson.Add(PI^.Name, Char(GetOrdProp(AObject, PI)));
+      tkInteger: AJson.Add(PI^.Name, GetOrdProp(AObject, PI));
+      tkInt64, tkQWord: AJson.Add(PI^.Name, GetInt64Prop(AObject, PI));
+      tkBool: AJson.Add(PI^.Name, GetOrdProp(AObject, PI) <> 0);
+      tkFloat:
+        begin
+          F := GetFloatProp(AObject, PI);
+          case PI^.PropType^.Name of
+            'TDate': AJson.Add(PI^.Name, DateToStr(F));
+            'TTime': AJson.Add(PI^.Name, TimeToStr(F));
+            'TDateTime': AJson.Add(PI^.Name, DateTimeToStr(F));
+          else
+            AJson.Add(PI^.Name, FloatToStr(F))
+          end;
+        end;
+      tkEnumeration: AJson.Add(PI^.Name, GetEnumProp(AObject, PI));
+      tkSet: AJson.Add(PI^.Name, GetSetProp(AObject, PI, False));
+    end;
+  end;
+end;
+
+procedure PropsToJSON(AObject: TObject; AJson: TJSONObject;
+  const AProps: array of string);
+var
+  C: Integer;
+  PL: PPropList = nil;
+begin
+  C := GetPropList(AObject, PL);
+  if Assigned(PL) then
+    try
+      RUtils.PropsToJSON(PL, C, AObject, AJson, AProps);
     finally
       FreeMem(PL);
     end;
