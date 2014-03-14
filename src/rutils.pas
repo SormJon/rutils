@@ -223,14 +223,14 @@ procedure GetJSONArray(const S: TJSONStringType; out AJSON: TJSONArray);
 procedure GetJSONObject(AStream: TStream; out AJSON: TJSONObject);
 procedure GetJSONObject(const S: TJSONStringType; out AJSON: TJSONObject);
 procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
-  AObject: TObject; AJson: TJSONObject; AIgnoredFields: TStrings); overload;
+  AObject: TObject; AJson: TJSONObject; AIgnoredProps: TStrings); overload;
 procedure ObjectToJSON(AObject: TObject; AJson: TJSONObject;
-  AIgnoredFields: TStrings); overload;
+  AIgnoredProps: TStrings); overload;
 procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
   AObject: TObject; AJson: TJSONObject;
-  const AIgnoredFields: array of string); overload;
+  const AIgnoredProps: array of string); overload;
 procedure ObjectToJSON(AObject: TObject; AJson: TJSONObject;
-  const AIgnoredFields: array of string); overload;
+  const AIgnoredProps: array of string); overload;
 
 { Util }
 
@@ -1877,7 +1877,7 @@ begin
 end;
 
 procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
-  AObject: TObject; AJson: TJSONObject; AIgnoredFields: TStrings);
+  AObject: TObject; AJson: TJSONObject; AIgnoredProps: TStrings);
 var
   F: Double;
   I: Integer;
@@ -1889,10 +1889,12 @@ begin
     raise ERUtils.Create('AObject must not be nil.');
   if not Assigned(AJson) then
     raise ERUtils.Create('AJson must not be nil.');
+  if not Assigned(AIgnoredProps) then
+    raise ERUtils.Create('AIgnoredProps must not be nil.');
   for I := 0 to Pred(APropCount) do
   begin
     PI := APropList^[I];
-    if AIgnoredFields.IndexOf(PI^.Name) > -1 then
+    if AIgnoredProps.IndexOf(PI^.Name) > -1 then
       Continue;
     case PI^.PropType^.Kind of
       tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
@@ -1918,7 +1920,7 @@ begin
 end;
 
 procedure ObjectToJSON(AObject: TObject; AJson: TJSONObject;
-  AIgnoredFields: TStrings);
+  AIgnoredProps: TStrings);
 var
   C: Integer;
   PL: PPropList = nil;
@@ -1926,14 +1928,14 @@ begin
   C := GetPropList(AObject, PL);
   if Assigned(PL) then
     try
-      RUtils.ObjectToJSON(PL, C, AObject, AJson, AIgnoredFields);
+      RUtils.ObjectToJSON(PL, C, AObject, AJson, AIgnoredProps);
     finally
       FreeMem(PL);
     end;
 end;
 
 procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
-  AObject: TObject; AJson: TJSONObject; const AIgnoredFields: array of string);
+  AObject: TObject; AJson: TJSONObject; const AIgnoredProps: array of string);
 var
   F: Double;
   I: Integer;
@@ -1948,7 +1950,7 @@ begin
   for I := 0 to Pred(APropCount) do
   begin
     PI := APropList^[I];
-    if Exists(PI^.Name, AIgnoredFields, True) then
+    if Exists(PI^.Name, AIgnoredProps, True) then
       Continue;
     case PI^.PropType^.Kind of
       tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
@@ -1974,7 +1976,7 @@ begin
 end;
 
 procedure ObjectToJSON(AObject: TObject; AJson: TJSONObject;
-  const AIgnoredFields: array of string);
+  const AIgnoredProps: array of string);
 var
   C: Integer;
   PL: PPropList = nil;
@@ -1982,7 +1984,7 @@ begin
   C := GetPropList(AObject, PL);
   if Assigned(PL) then
     try
-      RUtils.ObjectToJSON(PL, C, AObject, AJson, AIgnoredFields);
+      RUtils.ObjectToJSON(PL, C, AObject, AJson, AIgnoredProps);
     finally
       FreeMem(PL);
     end;
