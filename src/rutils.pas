@@ -1919,7 +1919,7 @@ begin
             'TTime': AJson.Add(PI^.Name, TimeToStr(F));
             'TDateTime': AJson.Add(PI^.Name, DateTimeToStr(F));
           else
-            AJson.Add(PI^.Name, FloatToStr(F))
+            AJson.Add(PI^.Name, F);
           end;
         end;
       tkEnumeration: AJson.Add(PI^.Name, GetEnumProp(AObject, PI));
@@ -1975,7 +1975,7 @@ begin
             'TTime': AJson.Add(PI^.Name, TimeToStr(F));
             'TDateTime': AJson.Add(PI^.Name, DateTimeToStr(F));
           else
-            AJson.Add(PI^.Name, FloatToStr(F))
+            AJson.Add(PI^.Name, F);
           end;
         end;
       tkEnumeration: AJson.Add(PI^.Name, GetEnumProp(AObject, PI));
@@ -2033,7 +2033,7 @@ begin
             'TTime': AJson.Add(PI^.Name, TimeToStr(F));
             'TDateTime': AJson.Add(PI^.Name, DateTimeToStr(F));
           else
-            AJson.Add(PI^.Name, FloatToStr(F))
+            AJson.Add(PI^.Name, F);
           end;
         end;
       tkEnumeration: AJson.Add(PI^.Name, GetEnumProp(AObject, PI));
@@ -2088,7 +2088,7 @@ begin
             'TTime': AJson.Add(PI^.Name, TimeToStr(F));
             'TDateTime': AJson.Add(PI^.Name, DateTimeToStr(F));
           else
-            AJson.Add(PI^.Name, FloatToStr(F))
+            AJson.Add(PI^.Name, F);
           end;
         end;
       tkEnumeration: AJson.Add(PI^.Name, GetEnumProp(AObject, PI));
