@@ -1888,6 +1888,7 @@ end;
 procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
   AObject: TObject; AJson: TJSONObject; AIgnoredProps: TStrings);
 var
+  O: Int64;
   F: Double;
   I: Integer;
   PI: PPropInfo;
@@ -1907,7 +1908,14 @@ begin
       Continue;
     case PI^.PropType^.Kind of
       tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
-      tkChar: AJson.Add(PI^.Name, Char(GetOrdProp(AObject, PI)));
+      tkChar:
+        begin
+          O := GetOrdProp(AObject, PI);
+          if O > 0 then
+            AJson.Add(PI^.Name, Char(O))
+          else
+            AJson.Add(PI^.Name);
+        end;
       tkInteger: AJson.Add(PI^.Name, GetOrdProp(AObject, PI));
       tkInt64, tkQWord: AJson.Add(PI^.Name, GetInt64Prop(AObject, PI));
       tkBool: AJson.Add(PI^.Name, GetOrdProp(AObject, PI) <> 0);
@@ -1946,6 +1954,7 @@ end;
 procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
   AObject: TObject; AJson: TJSONObject; const AIgnoredProps: array of string);
 var
+  O: Int64;
   F: Double;
   I: Integer;
   PI: PPropInfo;
@@ -1963,7 +1972,14 @@ begin
       Continue;
     case PI^.PropType^.Kind of
       tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
-      tkChar: AJson.Add(PI^.Name, Char(GetOrdProp(AObject, PI)));
+      tkChar:
+        begin
+          O := GetOrdProp(AObject, PI);
+          if O > 0 then
+            AJson.Add(PI^.Name, Char(O))
+          else
+            AJson.Add(PI^.Name);
+        end;
       tkInteger: AJson.Add(PI^.Name, GetOrdProp(AObject, PI));
       tkInt64, tkQWord: AJson.Add(PI^.Name, GetInt64Prop(AObject, PI));
       tkBool: AJson.Add(PI^.Name, GetOrdProp(AObject, PI) <> 0);
@@ -2002,6 +2018,7 @@ end;
 procedure PropsToJSON(APropList: PPropList; const APropCount: Integer;
   AObject: TObject; AJson: TJSONObject; AProps: TStrings);
 var
+  O: Int64;
   F: Double;
   I: Integer;
   PI: PPropInfo;
@@ -2021,7 +2038,14 @@ begin
       Continue;
     case PI^.PropType^.Kind of
       tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
-      tkChar: AJson.Add(PI^.Name, Char(GetOrdProp(AObject, PI)));
+      tkChar:
+        begin
+          O := GetOrdProp(AObject, PI);
+          if O > 0 then
+            AJson.Add(PI^.Name, Char(O))
+          else
+            AJson.Add(PI^.Name);
+        end;
       tkInteger: AJson.Add(PI^.Name, GetOrdProp(AObject, PI));
       tkInt64, tkQWord: AJson.Add(PI^.Name, GetInt64Prop(AObject, PI));
       tkBool: AJson.Add(PI^.Name, GetOrdProp(AObject, PI) <> 0);
@@ -2059,6 +2083,7 @@ end;
 procedure PropsToJSON(APropList: PPropList; const APropCount: Integer;
   AObject: TObject; AJson: TJSONObject; const AProps: array of string);
 var
+  O: Int64;
   F: Double;
   I: Integer;
   PI: PPropInfo;
@@ -2076,7 +2101,14 @@ begin
       Continue;
     case PI^.PropType^.Kind of
       tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
-      tkChar: AJson.Add(PI^.Name, Char(GetOrdProp(AObject, PI)));
+      tkChar:
+        begin
+          O := GetOrdProp(AObject, PI);
+          if O > 0 then
+            AJson.Add(PI^.Name, Char(O))
+          else
+            AJson.Add(PI^.Name);
+        end;
       tkInteger: AJson.Add(PI^.Name, GetOrdProp(AObject, PI));
       tkInt64, tkQWord: AJson.Add(PI^.Name, GetInt64Prop(AObject, PI));
       tkBool: AJson.Add(PI^.Name, GetOrdProp(AObject, PI) <> 0);
