@@ -498,28 +498,24 @@ end;
 
 function Password(const AAmount: TGeneratePasswordAmount; const AAZ: Boolean;
   const A_az: Boolean; const ASymbols: Boolean; const ANumbers: Boolean): string;
-const
-  Chrs = az_ + AZ + SYMBOLS;
 var
   P: PChar;
-  I, L: Integer;
+  I: Integer;
+  Chrs: string = '';
 begin
-  L := 0;
-  if ANumbers then
-    Inc(L, 10);
-  if A_az then
-    Inc(L, 26);
   if AAZ then
-    Inc(L, 26);
+    Chrs += AZ;
+  if A_az then
+    Chrs += az_;
   if ASymbols then
-    Inc(L, 32);
-  if L = 0 then
-    Exit;
+    Chrs += SYMBOLS;
+  if ANumbers then
+    Chrs += NUMBERS;
   SetLength(Result, AAmount);
   P := PChar(Result);
   for I := 1 to AAmount do
   begin
-    P^ := Chrs[1 + Random(L)];
+    P^ := Chrs[1 + Random(Length(Chrs))];
     Inc(P);
   end;
 end;
