@@ -1184,31 +1184,20 @@ end;
 function UnderlineStr(const S: string): string;
 var
   PSrc, PDest: PChar;
-  VWord, VSrc: string;
-  I: SizeInt;
 begin
-  SetLength(VSrc, Length(S));
+  SetLength(Result, Length(S));
   PSrc := PChar(S);
-  PDest := PChar(VSrc);
+  PDest := PChar(Result);
   while PSrc^ <> NU do
   begin
-    if PSrc^ in ['_', '0'..'9', 'a'..'z', 'A'..'Z'] then
+    if PSrc^ in [DirectorySeparator, DriveSeparator, US, '.', ',', '-', '+',
+      '_', '0'..'9', 'a'..'z', 'A'..'Z'] then
       PDest^ := PSrc^
     else
-      PDest^ := ' ';
+      PDest^ := '_';
     Inc(PDest);
     Inc(PSrc);
   end;
-  I := 1;
-  VWord := '';
-  Result := '';
-  repeat
-    VWord := ExtractWord(I, VSrc, [' ']);
-    if Length(VWord) > 3 then
-      Result += VWord + '_';
-    Inc(I);
-  until VWord = '';
-  SetLength(Result, Length(Result) - 1);
 end;
 
 function Explode(const S: string; const ADelimiter: string;
