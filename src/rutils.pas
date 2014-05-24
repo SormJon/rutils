@@ -147,6 +147,11 @@ procedure NameValueOf(const S: string; out AName, AValue: string);
 function FileNameOf(const S: string): string;
 procedure StrToFile(const S: string; const AFileName: TFileName);
 function FileToStr(const AFileName: TFileName): string;
+function FileValue(const AFileName: TFileName; const AName: string;
+  const ADefValue: string = ''): string; overload;
+function FileValue(const AFileName: TFileName; const AName: string;
+  const ACreatesIfNotExists: Boolean;
+  const ADefValue: string = ''): string; overload;
 function HiddenPassword(const APass: string; const AChar: Char = AK): string;
 function StrToHex(const S: string): string;
 function HexToStr(const AHex: string): string;
@@ -944,6 +949,66 @@ begin
     finally
       Free;
     end;
+end;
+
+function FileValue(const AFileName: TFileName; const AName: string;
+  const ADefValue: string): string;
+var
+  VIdx: Integer;
+begin
+  with TStringList.Create do
+  try
+    if SysUtils.FileExists(AFileName) then
+    begin
+      LoadFromFile(AFileName);
+      VIdx := IndexOfName(AName);
+      if VIdx > -1 then
+        Result := ValueFromIndex[VIdx]
+      else
+        Result := ADefValue;
+    end
+    else
+      Result := ADefValue;
+  finally
+    Free;
+  end;
+end;
+
+function FileValue(const AFileName: TFileName; const AName: string;
+  const ACreatesIfNotExists: Boolean; const ADefValue: string): string;
+var
+  VIdx: Integer;
+begin
+  with TStringList.Create do
+  try
+    if SysUtils.FileExists(AFileName) then
+    begin
+      LoadFromFile(AFileName);
+      VIdx := IndexOfName(AName);
+      if VIdx > -1 then
+        Result := ValueFromIndex[VIdx]
+      else
+      begin
+        Result := ADefValue;
+        if ACreatesIfNotExists then
+        begin
+          Values[AName] := ADefValue;
+          SaveToFile(AFileName);
+        end;
+      end;
+    end
+    else
+    begin
+      Result := ADefValue;
+      if ACreatesIfNotExists then
+      begin
+        Values[AName] := ADefValue;
+        SaveToFile(AFileName);
+      end;
+    end;
+  finally
+    Free;
+  end;
 end;
 
 function HiddenPassword(const APass: string; const AChar: Char): string;
