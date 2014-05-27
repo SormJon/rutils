@@ -260,6 +260,10 @@ function System(const ACmd: string; const AFlags: TExecuteFlags = []): Integer;
 
 procedure CopyObject(AFrom, ATo: TObject);
 
+{ E-mail }
+
+function ValidEmail(const S: string): Boolean;
+
 implementation
 
 { (De)Compress }
@@ -2269,6 +2273,115 @@ begin
   finally
     FreeMem(PL, C * SizeOf(PPropInfo));
   end;
+end;
+
+{ E-mail }
+
+function ValidEmail(const S: string): Boolean;
+{
+  Author: Ernesto D'Spirito
+  Revision: Silvio Clécio - Accepts all valid e-mails informed in
+    http://en.wikipedia.org/wiki/E-mail_address
+  TODO: Accept e-mails like admin@mailserver1 and üñîçøðé@üñîçøðé.com
+}
+const
+  // Valid characters in an "atom"
+  ATOM_CHARS = [#33..#255] - ['(', ')', '<', '>', '@', ',', ';',
+    ':', '\', {'/', }'"', '.', '[', ']', #127];
+  // Valid characters in a "quoted-string"
+  QUOTED_STRING_CHARS = [#0..#255] - ['"', #13, '\'];
+  // Valid characters in a subdomain
+  LETTERS = ['A'..'Z', 'a'..'z'];
+  LETTERS_DIGITS = ['0'..'9', 'A'..'Z', 'a'..'z'];
+type
+  TValidEmailStates = (stBegin, stAtom, stQText, stQChar, stQuote,
+    stLocalPeriod, stExpectingSubdomain, stSubdomain, stHyphen);
+var
+  C: Char;
+  I, N, SB: Integer;
+  ST: TValidEmailStates;
+begin
+  ST := stBegin;
+  N := Length(S);
+  I := 1;
+  SB := 1;
+  while I <= N do
+  begin
+    C := S[I];
+    case ST of
+      stBegin:
+        if C in ATOM_CHARS then
+          ST := stAtom
+        else
+          if C = '"' then
+            ST := stQText
+          else
+            Break;
+      stAtom:
+        if C = '@' then
+          ST := stExpectingSubdomain
+        else
+          if C = '.' then
+            ST := stLocalPeriod
+          else
+            if not (C in ATOM_CHARS) then
+              Break;
+      stQText:
+        if C = '\' then
+          ST := stQChar
+        else
+          if C = '"' then
+            ST := stQuote
+          else
+            if not (C in QUOTED_STRING_CHARS) then
+              Break;
+      stQChar:
+        ST := stQText;
+      stQuote:
+        if C = '@' then
+          ST := stExpectingSubdomain
+        else
+          if C = '.' then
+            ST := stLocalPeriod
+          else
+            Break;
+      stLocalPeriod:
+        if C in ATOM_CHARS then
+          ST := stAtom
+        else
+          if C = '"' then
+            ST := stQText
+          else
+            Break;
+      stExpectingSubdomain:
+        if C in LETTERS then
+          ST := stSubdomain
+        else
+          Break;
+      stSubdomain:
+        if C = '.' then
+        begin
+          Inc(SB);
+          ST := stExpectingSubdomain;
+        end
+        else
+          if C = '-' then
+            ST := stHyphen
+          else
+            if not (C in LETTERS_DIGITS) then
+              Break;
+      stHyphen:
+        if C in LETTERS_DIGITS then
+          ST := stSubdomain
+        else
+          if C <> '-' then
+            Break;
+    end;
+    Inc(I);
+  end;
+  if I <= N then
+    Exit(False);
+  Result := (ST = stSubdomain) and (SB >= 2);
 end;
 
 end.
