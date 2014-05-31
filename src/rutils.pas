@@ -1259,8 +1259,8 @@ begin
   PDest := PChar(Result);
   while PSrc^ <> NU do
   begin
-    if PSrc^ in [DirectorySeparator, DriveSeparator, US, '.', ',', '-', '+',
-      '_', '0'..'9', 'a'..'z', 'A'..'Z'] then
+    if PSrc^ in [{$IFDEF MSWINDOWS}DriveSeparator, US,{$ENDIF}DirectorySeparator,
+      '.', ',', '-', '+', '_', '0'..'9', 'a'..'z', 'A'..'Z'] then
       PDest^ := PSrc^
     else
       PDest^ := '_';
