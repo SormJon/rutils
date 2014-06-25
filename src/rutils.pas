@@ -185,8 +185,8 @@ function MatchStrings(ASource, APattern: string): Boolean;
 function SeparateRight(const S, ADelimiter: string): string; overload;
 function SeparateRight(const S, ADelimiter: string;
   const AIgnoreCase: Boolean): string; overload;
-function Between(const AStart, AEnd: string; const S: string): string; overload;
-function Between(const AStart, AEnd: string; const S: string;
+function Between(const S: string; const AStart, AEnd: string): string; overload;
+function Between(const S: string; const AStart, AEnd: string;
   const AIgnoreCase: Boolean): string; overload;
 function RemoveDiacritics(const S: string): string;
 function RemoveSpecialChars(const S: string): string;
@@ -218,7 +218,7 @@ function Iif(const ACondition: Boolean;
 
 { JSON }
 
-function ParamsToJSON(const AParam: string;
+function ParamsToJSON(const AParams: string;
   const ASeparator, ADelimiter: Char): TJSONStringType;
 function JSONToParams(AJSON: TJSONObject): string;
 function PathToJSON(const APath: string; const ADelimiter: Char): TJSONStringType;
@@ -1468,7 +1468,7 @@ begin
     Result := SeparateRight(S, ADelimiter);
 end;
 
-function Between(const AStart, AEnd: string; const S: string): string;
+function Between(const S: string; const AStart, AEnd: string): string;
 var
   I, C, L1, L2, L3: Integer;
   S1, S2: string;
@@ -1517,7 +1517,7 @@ begin
   end;
 end;
 
-function Between(const AStart, AEnd: string; const S: string;
+function Between(const S: string; const AStart, AEnd: string;
   const AIgnoreCase: Boolean): string;
 var
   I, C, L1, L2, L3: Integer;
@@ -1779,14 +1779,14 @@ end;
 
 { JSON }
 
-function ParamsToJSON(const AParam: string; const ASeparator,
+function ParamsToJSON(const AParams: string; const ASeparator,
   ADelimiter: Char): TJSONStringType;
 var
   VChar: Char;
   I, J, VPos: Integer;
   S, VName, VValue, VResult: string;
 begin
-  Result := AParam;
+  Result := AParams;
   if Length(Result) = 0 then
   begin
     Result := '{}';
