@@ -228,23 +228,26 @@ procedure GetJSONArray(const S: TJSONStringType; out AJSON: TJSONArray);
 procedure GetJSONObject(AStream: TStream; out AJSON: TJSONObject);
 procedure GetJSONObject(const S: TJSONStringType; out AJSON: TJSONObject);
 procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
-  AObject: TObject; AJson: TJSONObject; AIgnoredProps: TStrings); overload;
+  AObject: TObject; AJson: TJSONObject; AIgnoredProps: TStrings;
+  const AUseUTF8: Boolean = False); overload;
 procedure ObjectToJSON(AObject: TObject; AJson: TJSONObject;
-  AIgnoredProps: TStrings); overload;
+  AIgnoredProps: TStrings; const AUseUTF8: Boolean = False); overload;
 procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
-  AObject: TObject; AJson: TJSONObject;
-  const AIgnoredProps: array of string); overload;
+  AObject: TObject; AJson: TJSONObject; const AIgnoredProps: array of string;
+  const AUseUTF8: Boolean = False); overload;
 procedure ObjectToJSON(AObject: TObject; AJson: TJSONObject;
-  const AIgnoredProps: array of string); overload;
+  const AIgnoredProps: array of string;
+  const AUseUTF8: Boolean = False); overload;
 procedure PropsToJSON(APropList: PPropList; const APropCount: Integer;
-  AObject: TObject; AJson: TJSONObject; AProps: TStrings); overload;
-procedure PropsToJSON(AObject: TObject; AJson: TJSONObject;
-  AProps: TStrings); overload;
+  AObject: TObject; AJson: TJSONObject; AProps: TStrings;
+  const AUseUTF8: Boolean = False); overload;
+procedure PropsToJSON(AObject: TObject; AJson: TJSONObject; AProps: TStrings;
+  const AUseUTF8: Boolean = False); overload;
 procedure PropsToJSON(APropList: PPropList; const APropCount: Integer;
-  AObject: TObject; AJson: TJSONObject;
-  const AProps: array of string); overload;
+  AObject: TObject; AJson: TJSONObject; const AProps: array of string;
+  const AUseUTF8: Boolean = False); overload;
 procedure PropsToJSON(AObject: TObject; AJson: TJSONObject;
-  const AProps: array of string); overload;
+  const AProps: array of string; const AUseUTF8: Boolean = False); overload;
 
 { Util }
 
@@ -1940,7 +1943,8 @@ begin
 end;
 
 procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
-  AObject: TObject; AJson: TJSONObject; AIgnoredProps: TStrings);
+  AObject: TObject; AJson: TJSONObject; AIgnoredProps: TStrings;
+  const AUseUTF8: Boolean);
 var
   O: Int64;
   F: Double;
@@ -1961,7 +1965,11 @@ begin
     if AIgnoredProps.IndexOf(PI^.Name) > -1 then
       Continue;
     case PI^.PropType^.Kind of
-      tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
+      tkAString:
+        if AUseUTF8 then
+          AJson.Add(PI^.Name, UTF8Encode(GetStrProp(AObject, PI)))
+        else
+          AJson.Add(PI^.Name, GetStrProp(AObject, PI));
       tkChar:
         begin
           O := GetOrdProp(AObject, PI);
@@ -1991,7 +1999,7 @@ begin
 end;
 
 procedure ObjectToJSON(AObject: TObject; AJson: TJSONObject;
-  AIgnoredProps: TStrings);
+  AIgnoredProps: TStrings; const AUseUTF8: Boolean);
 var
   C: Integer;
   PL: PPropList = nil;
@@ -1999,14 +2007,15 @@ begin
   C := GetPropList(AObject, PL);
   if Assigned(PL) then
     try
-      RUtils.ObjectToJSON(PL, C, AObject, AJson, AIgnoredProps);
+      RUtils.ObjectToJSON(PL, C, AObject, AJson, AIgnoredProps, AUseUTF8);
     finally
       FreeMem(PL);
     end;
 end;
 
 procedure ObjectToJSON(APropList: PPropList; const APropCount: Integer;
-  AObject: TObject; AJson: TJSONObject; const AIgnoredProps: array of string);
+  AObject: TObject; AJson: TJSONObject; const AIgnoredProps: array of string;
+  const AUseUTF8: Boolean);
 var
   O: Int64;
   F: Double;
@@ -2025,7 +2034,11 @@ begin
     if Exists(PI^.Name, AIgnoredProps, True) then
       Continue;
     case PI^.PropType^.Kind of
-      tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
+      tkAString:
+        if AUseUTF8 then
+          AJson.Add(PI^.Name, UTF8Encode(GetStrProp(AObject, PI)))
+        else
+          AJson.Add(PI^.Name, GetStrProp(AObject, PI));
       tkChar:
         begin
           O := GetOrdProp(AObject, PI);
@@ -2055,7 +2068,7 @@ begin
 end;
 
 procedure ObjectToJSON(AObject: TObject; AJson: TJSONObject;
-  const AIgnoredProps: array of string);
+  const AIgnoredProps: array of string; const AUseUTF8: Boolean);
 var
   C: Integer;
   PL: PPropList = nil;
@@ -2063,14 +2076,15 @@ begin
   C := GetPropList(AObject, PL);
   if Assigned(PL) then
     try
-      RUtils.ObjectToJSON(PL, C, AObject, AJson, AIgnoredProps);
+      RUtils.ObjectToJSON(PL, C, AObject, AJson, AIgnoredProps, AUseUTF8);
     finally
       FreeMem(PL);
     end;
 end;
 
 procedure PropsToJSON(APropList: PPropList; const APropCount: Integer;
-  AObject: TObject; AJson: TJSONObject; AProps: TStrings);
+  AObject: TObject; AJson: TJSONObject; AProps: TStrings;
+  const AUseUTF8: Boolean);
 var
   O: Int64;
   F: Double;
@@ -2091,7 +2105,11 @@ begin
     if AProps.IndexOf(PI^.Name) < 0 then
       Continue;
     case PI^.PropType^.Kind of
-      tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
+      tkAString:
+        if AUseUTF8 then
+          AJson.Add(PI^.Name, UTF8Encode(GetStrProp(AObject, PI)))
+        else
+          AJson.Add(PI^.Name, GetStrProp(AObject, PI));
       tkChar:
         begin
           O := GetOrdProp(AObject, PI);
@@ -2120,7 +2138,8 @@ begin
   end;
 end;
 
-procedure PropsToJSON(AObject: TObject; AJson: TJSONObject; AProps: TStrings);
+procedure PropsToJSON(AObject: TObject; AJson: TJSONObject; AProps: TStrings;
+  const AUseUTF8: Boolean);
 var
   C: Integer;
   PL: PPropList = nil;
@@ -2128,14 +2147,15 @@ begin
   C := GetPropList(AObject, PL);
   if Assigned(PL) then
     try
-      RUtils.PropsToJSON(PL, C, AObject, AJson, AProps);
+      RUtils.PropsToJSON(PL, C, AObject, AJson, AProps, AUseUTF8);
     finally
       FreeMem(PL);
     end;
 end;
 
 procedure PropsToJSON(APropList: PPropList; const APropCount: Integer;
-  AObject: TObject; AJson: TJSONObject; const AProps: array of string);
+  AObject: TObject; AJson: TJSONObject; const AProps: array of string;
+  const AUseUTF8: Boolean);
 var
   O: Int64;
   F: Double;
@@ -2154,7 +2174,11 @@ begin
     if not Exists(PI^.Name, AProps, True) then
       Continue;
     case PI^.PropType^.Kind of
-      tkAString: AJson.Add(PI^.Name, GetStrProp(AObject, PI));
+      tkAString:
+        if AUseUTF8 then
+          AJson.Add(PI^.Name, UTF8Encode(GetStrProp(AObject, PI)))
+        else
+          AJson.Add(PI^.Name, GetStrProp(AObject, PI));
       tkChar:
         begin
           O := GetOrdProp(AObject, PI);
@@ -2184,7 +2208,7 @@ begin
 end;
 
 procedure PropsToJSON(AObject: TObject; AJson: TJSONObject;
-  const AProps: array of string);
+  const AProps: array of string; const AUseUTF8: Boolean);
 var
   C: Integer;
   PL: PPropList = nil;
@@ -2192,7 +2216,7 @@ begin
   C := GetPropList(AObject, PL);
   if Assigned(PL) then
     try
-      RUtils.PropsToJSON(PL, C, AObject, AJson, AProps);
+      RUtils.PropsToJSON(PL, C, AObject, AJson, AProps, AUseUTF8);
     finally
       FreeMem(PL);
     end;
